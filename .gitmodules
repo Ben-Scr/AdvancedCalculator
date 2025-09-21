@@ -1,0 +1,3 @@
+[submodule "Submodules/Parser"]
+	path = Submodules/Parser
+	url = https://github.com/rrainix/Parser
