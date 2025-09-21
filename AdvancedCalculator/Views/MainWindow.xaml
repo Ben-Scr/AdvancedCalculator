@@ -1,0 +1,44 @@
+﻿<Window x:Class="AdvancedCalculator.Views.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:shell="clr-namespace:System.Windows.Shell;assembly=PresentationFramework"
+        xmlns:views="clr-namespace:AdvancedCalculator.Views"
+        xmlns:controls="clr-namespace:AdvancedCalculator.Views.Controls"
+        xmlns:pages="clr-namespace:AdvancedCalculator.Views.Pages"
+        Title="AdvancedCalculator"
+        Width="360" Height="500"
+        WindowStyle="None"
+        ResizeMode="CanResize"
+        Background="Transparent"
+        MinWidth="360"
+        MinHeight="480"
+        AllowsTransparency="True">
+
+    <shell:WindowChrome.WindowChrome>
+        <shell:WindowChrome CaptionHeight="44"
+                            CornerRadius="14"
+                            UseAeroCaptionButtons="False"
+                            ResizeBorderThickness="7"/>
+    </shell:WindowChrome.WindowChrome>
+
+    <Border CornerRadius="14"
+            Background="#272537"
+            BorderBrush="#3A3842"
+            BorderThickness="1"
+            SnapsToDevicePixels="True">
+
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="44"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+
+            <!-- Eigene Titelbar -->
+            <controls:TitleBar Grid.Row="0"/>
+
+            <!-- Inhalt: Calculator -->
+            <pages:CalculatorView Grid.Row="1" Margin="14"
+                                  DataContext="{Binding Calculator}"/>
+        </Grid>
+    </Border>
+</Window>

@@ -1,14 +1,24 @@
-﻿using System.Configuration;
-using System.Data;
+﻿using Microsoft.Extensions.DependencyInjection;
+using System;
 using System.Windows;
+using AdvancedCalculator.ViewModels;
+using AdvancedCalculator.Core;
 
 namespace AdvancedCalculator
 {
-    /// <summary>
-    /// Interaction logic for App.xaml
-    /// </summary>
     public partial class App : Application
     {
-    }
+        public static IServiceProvider Services { get; private set; } = default!;
 
+        protected override void OnStartup(StartupEventArgs e)
+        {
+            base.OnStartup(e);
+
+            var sc = new ServiceCollection();
+            sc.AddSingleton<CalculatorViewModel>();
+            sc.AddSingleton<MainWindowViewModel>();
+
+            Services = sc.BuildServiceProvider();
+        }
+    }
 }
