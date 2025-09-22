@@ -18,9 +18,17 @@ namespace AdvancedCalculator.ViewModels
             set { display = value; OnPropertyChanged(); }
         }
 
+        private int cursorIndex;
+        public int CursorIndex
+        {
+            get => cursorIndex;
+            set { cursorIndex = value; OnPropertyChanged(); }
+        }
+
         public ObservableCollection<CalcKey> Keys { get; } = new();
 
         private Evaluator evaluator;
+        private string ans;
 
         public CalculatorViewModel()
         {
@@ -31,17 +39,17 @@ namespace AdvancedCalculator.ViewModels
         private void BuildKeys()
         {
             // Row 1
-            Add("%");
-            Add("log");
-            Add("sin");
-            Add("cos");
-            Add("tan");
+            Add("%", keyType: KeyType.RightOperator);
+            Add("log", keyType: KeyType.Function);
+            Add("sin", keyType: KeyType.Function);
+            Add("cos", keyType: KeyType.Function);
+            Add("tan" ,keyType: KeyType.Function);
             // Row 2
             Add("(");
             Add(")");
-            Add("^");
-            Add("√");
-            Add("π");
+            Add("^", keyType: KeyType.Default);
+            Add("√", keyType: KeyType.LeftOperator);
+            Add("π", keyType: KeyType.Default);
             // Row 3
             Add("7");
             Add("8");
@@ -52,24 +60,24 @@ namespace AdvancedCalculator.ViewModels
             Add("4");
             Add("5");
             Add("6");
-            Add("×");
-            Add("÷");
+            Add("×", keyType: KeyType.RightOperator);
+            Add("÷", keyType: KeyType.RightOperator);
 
             // Row 5
             Add("1");
             Add("2");
             Add("3");
-            Add("+");
-            Add("−");
+            Add("+", keyType: KeyType.Operator);
+            Add("−", keyType: KeyType.Operator);
             // Row 6
             Add("0");
             Add(".", new RelayCommand(func => AppendDot()));
             Add("");
-            Add("Ans");
+            Add("Ans", new RelayCommand(func => Append(ans, KeyType.DirectFunction)));
             Add("=", new RelayCommand(func => Evaluate()), isAccent: true);
         }
 
-        private void Add(string label, RelayCommand command = null, bool isAccent = false, string displayOverride = null)
+        private void Add(string label, RelayCommand command = null, bool isAccent = false, string displayOverride = null, KeyType keyType = KeyType.Digit)
         {
             if (string.IsNullOrEmpty(label))
             {
@@ -77,13 +85,29 @@ namespace AdvancedCalculator.ViewModels
                 return;
             }
 
-            command ??= new RelayCommand(a => Append(displayOverride ?? label));
+            command ??= new RelayCommand(a => Append(displayOverride ?? label, keyType));
             Keys.Add(new CalcKey { Label = label, Command = command, IsAccent = isAccent });
         }
 
-        private void Append(string s)
+        private void Append(string s, KeyType keyType)
         {
-            if (Display == "0") Display = s;
+            bool displayZeroOrNull = Display == "0" || string.IsNullOrEmpty(Display);
+
+            if (displayZeroOrNull && keyType == KeyType.RightOperator) return;
+
+            if(!displayZeroOrNull && (keyType == KeyType.Operator || keyType == KeyType.RightOperator))
+            {
+                s = $" {s} ";
+            }
+            else if (keyType == KeyType.Function)
+            {
+                s = $"{s}(";
+            }
+
+            if ((displayZeroOrNull || Display == ans) && keyType != KeyType.RightOperator)
+            {
+                Display = s;
+            }
             else Display += s;
         }
 
@@ -99,7 +123,7 @@ namespace AdvancedCalculator.ViewModels
             var last = txt[(i + 1)..];
             if (!last.Contains("."))
             {
-                Append(".");
+                Append(".", KeyType.Default);
             }
         }
 
@@ -112,12 +136,9 @@ namespace AdvancedCalculator.ViewModels
 
         private void Evaluate()
         {
-            try
-            {
-                var expr = Display.Replace("×", "*").Replace("÷", "/").Replace("−", "-");
-                Display = Parser.ParserRuntime.Run(expr, evaluator)?.ToString() ?? "0";
-            }
-            catch { Display = "Error"; }
+            var expr = Display.Replace("×", "*").Replace("÷", "/").Replace("−", "-");
+            Display = Parser.ParserRuntime.Run(expr, evaluator)?.ToString() ?? "0";
+            ans = Display;
         }
 
         public event PropertyChangedEventHandler? PropertyChanged;

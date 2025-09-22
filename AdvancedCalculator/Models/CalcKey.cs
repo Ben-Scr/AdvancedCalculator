@@ -2,6 +2,17 @@
 
 namespace AdvancedCalculator.Models
 {
+    public enum KeyType
+    {
+        Default,
+        Operator,
+        RightOperator,
+        LeftOperator,
+        Digit,
+        Function,
+        DirectFunction,
+    }
+
     public class CalcKey
     {
         public string Label { get; set; } = "";
