@@ -4,6 +4,7 @@ using Parser;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
+using System.Windows;
 using System.Windows.Input;
 
 namespace AdvancedCalculator.ViewModels
@@ -47,7 +48,7 @@ namespace AdvancedCalculator.ViewModels
             // Row 2
             Add("(");
             Add(")");
-            Add("^", keyType: KeyType.Default);
+            Add("^", keyType: KeyType.RightOperator);
             Add("√", keyType: KeyType.LeftOperator);
             Add("π", keyType: KeyType.Default);
             // Row 3
@@ -91,11 +92,13 @@ namespace AdvancedCalculator.ViewModels
 
         private void Append(string s, KeyType keyType)
         {
+            int idx = cursorIndex;
+
             bool displayZeroOrNull = Display == "0" || string.IsNullOrEmpty(Display);
 
             if (displayZeroOrNull && keyType == KeyType.RightOperator) return;
 
-            if(!displayZeroOrNull && (keyType == KeyType.Operator || keyType == KeyType.RightOperator))
+            if(!displayZeroOrNull && (keyType == KeyType.Operator || keyType == KeyType.RightOperator) && s != "^")
             {
                 s = $" {s} ";
             }
@@ -108,7 +111,9 @@ namespace AdvancedCalculator.ViewModels
             {
                 Display = s;
             }
-            else Display += s;
+            else Display = Display.Insert(Math.Clamp(idx, 0, Display.Length), s);
+
+            CursorIndex = idx + s.Length;
         }
 
         private void ClearDisplay() { Display = "0"; }
@@ -129,16 +134,30 @@ namespace AdvancedCalculator.ViewModels
 
         private void Backspace()
         {
-            if (Display.Length <= 1) Display = "0";
-            else if (Display[Display.Length - 1] == ' ') Display = Display.Remove(Math.Clamp(Display.Length - 3, 0, int.MaxValue));
-            else Display = Display[..^1];
+            int idx = CursorIndex;
+
+            if (idx - 1 < 0) return;
+
+            if (Display.Length <= 1)
+            {
+                Display = "0";
+            }
+            else
+            {
+                int removeCount = Display[Display.Length - 1] == ' ' ? 3 : 1;
+                Display = Display.Remove(idx - removeCount);
+                idx -= removeCount;
+            }
+            CursorIndex = idx;
         }
 
         private void Evaluate()
         {
+            int idx = CursorIndex;
             var expr = Display.Replace("×", "*").Replace("÷", "/").Replace("−", "-");
-            Display = Parser.ParserRuntime.Run(expr, evaluator)?.ToString() ?? "0";
+            Display = ParserRuntime.Run(expr, evaluator)?.ToString() ?? "0";
             ans = Display;
+            CursorIndex = Display.Length;
         }
 
         public event PropertyChangedEventHandler? PropertyChanged;
