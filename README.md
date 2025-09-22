@@ -6,6 +6,9 @@ A advanced calculator for windows.
 - 5 * (10 + 5) = 75
 - 20 + 100 / 2 * 4^2 = 820
 - 5 + (-2) - (-12) = 15
+- (sin(π ÷ 6)) ^ 2 + (cos(π ÷ 6)) ^ 2 = 1
+- cos(0) = 1
+- √(2 ^ 2 + 3 ^ 2) = 3.60555127546399
 
 ## Screenshots
 <img src="Docs/Screenshot.png" width="45%" alt="Screenshot 1">
@@ -14,3 +17,8 @@ A advanced calculator for windows.
 - Functions such as sin, cos and tan
 - Constant Variables like π and E
 - Advanced calculations such as (sin(π ÷ 6)) ^ 2 + (cos(π ÷ 6)) ^ 2 = 1
+
+## Planned features
+- Calculation history
+- Converter
+- Serialization of the last 5 or 10 calculations
