@@ -22,6 +22,7 @@ A advanced calculator for windows.
 - clamp(value, min, max)
 - random(min, max)
 - random()
+- toHex(value1, value2, ...)
 - quit()
 
 ## Current features
