@@ -73,7 +73,7 @@ namespace AdvancedCalculator.ViewModels
             // Row 6
             Add("0");
             Add(".", new RelayCommand(func => AppendDot()));
-            Add("");
+            Add("e", keyType: KeyType.Default);
             Add("Ans", new RelayCommand(func => Append(ans, KeyType.DirectFunction)));
             Add("=", new RelayCommand(func => Evaluate()), isAccent: true);
         }
