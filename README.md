@@ -8,4 +8,4 @@ A advanced calculator for windows.
 - 5 + (-2) - (-12) = 15
 
 ## Screenshots
-<img src="docs/screen1.png" width="45%" alt="Gameplay Screenshot 1">
+<img src="Docs/Screenshot.png" width="45%" alt="Screenshot 1">
