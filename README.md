@@ -10,9 +10,6 @@ A advanced calculator for windows.
 - cos(0) = 1
 - √(2 ^ 2 + 3 ^ 2) = 3.60555127546399
 
-## Screenshots
-<img src="Docs/Screenshot.png" width="45%" alt="Screenshot 1">
-
 ## Current features
 - Functions such as sin, cos and tan
 - Constant Variables like π and E
@@ -22,3 +19,6 @@ A advanced calculator for windows.
 - Calculation history
 - Converter
 - Serialization of the last 5 or 10 calculations
+
+## Screenshots
+<img src="Docs/Screenshot.png" width="45%" alt="Screenshot 1">
