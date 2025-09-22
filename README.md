@@ -8,10 +8,27 @@ A advanced calculator for windows.
 - cos(0) = 1
 - √(2 ^ 2 + 3 ^ 2) = 3.60555127546399
 
+## Implemented and useable functions
+- pow(value1, value2)
+- sin(value)
+- cos(value)
+- tan(value)
+- log(value)
+- abs(value)
+- atan(value)
+- atan2(value1, value2)
+- max(value1, value2, ...)
+- min(value1, value2, ...)
+- clamp(value, min, max)
+- random(min, max)
+- random()
+- quit()
+
 ## Current features
 - Functions such as sin, cos and tan
 - Constant Variables like π and E
 - Advanced calculations such as (sin(π ÷ 6)) ^ 2 + (cos(π ÷ 6)) ^ 2 = 1
+- Random functions
 
 ## Planned features
 - Calculation history
