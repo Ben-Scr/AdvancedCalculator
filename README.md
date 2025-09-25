@@ -26,7 +26,7 @@ An advanced calculator for windows.
 - quit()
 
 ## Screenshot
-<img src="Docs/Screen1.png" width="10%" algin="center" alt="Screenshot 1">
+<img src="Docs/Screen1.png" width="20%" algin="center" alt="Screenshot 1">
 
 ## Current features
 - Functions such as sin, cos and tan
