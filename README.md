@@ -1,5 +1,5 @@
 # Advanced WPF Calculator
-A advanced calculator for windows.
+An advanced calculator for windows.
 
 ## Calculation Examples
 - 20 + 100 / 2 * 4^2 = 820
