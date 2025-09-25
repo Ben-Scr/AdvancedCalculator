@@ -37,4 +37,4 @@ An advanced calculator for windows.
 - Serialization of the last 5 or 10 calculations
 
 ## Screenshots
-<img src="Docs/Screen1.png" width="45%" alt="Screenshot 1">
+<img src="Docs/Screen1.png" width="45%" horizontal-alginment="center" alt="Screenshot 1">
