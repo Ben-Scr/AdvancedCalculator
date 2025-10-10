@@ -1,5 +1,5 @@
-# Advanced WPF Calculator
-An advanced calculator for windows.
+# Advanced C# WPF Calculator
+An Advanced C# Calculator For Windows.
 
 ## Calculation Examples
 - 20 + 100 / 2 * 4^2 = 820
@@ -8,7 +8,7 @@ An advanced calculator for windows.
 - cos(0) = 1
 - √(2 ^ 2 + 3 ^ 2) = 3.60555127546399
 
-## Implemented functions
+## Implemented Functions
 - pow(value1, value2)
 - sin(value)
 - cos(value)
@@ -28,13 +28,13 @@ An advanced calculator for windows.
 ## Screenshot
 <img src="Docs/Screen1.png" width="20%" algin="center" alt="Screenshot 1">
 
-## Current features
+## Current Features
 - Functions such as sin, cos and tan
 - Constant Variables like π and E
 - Advanced calculations such as (sin(π ÷ 6)) ^ 2 + (cos(π ÷ 6)) ^ 2 = 1
 - Random functions
 
-## Planned features
+## Planned Features
 - Calculation history
 - Converter
 - Serialization of the last 5 or 10 calculations
