@@ -1,5 +1,5 @@
 # Advanced C# WPF Calculator
-An Advanced C# Calculator For Windows.
+An Advanced C# Calculator for Windows.
 
 ## Calculation Examples
 - 20 + 100 / 2 * 4^2 = 820
