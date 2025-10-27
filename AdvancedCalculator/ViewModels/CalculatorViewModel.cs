@@ -27,14 +27,11 @@ namespace AdvancedCalculator.ViewModels
         }
 
         public ObservableCollection<CalcKey> Keys { get; } = new();
-
-        private Evaluator evaluator;
         private string ans;
 
         public CalculatorViewModel()
         {
             BuildKeys();
-            evaluator = Evaluator.Calculator();
         }
 
         private void BuildKeys()
@@ -155,7 +152,7 @@ namespace AdvancedCalculator.ViewModels
         {
             int idx = CursorIndex;
             var expr = Display.Replace("×", "*").Replace("÷", "/").Replace("−", "-");
-            Display = ParserRuntime.Run(expr, evaluator).ToString();
+            Display = Calculator.Evaluate(expr).ToString();
             ans = Display;
             CursorIndex = Display.Length;
         }
