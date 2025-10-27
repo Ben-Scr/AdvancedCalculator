@@ -14,6 +14,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
+	  <ProjectReference Include="..\Submodules\MathParser\MathParser\MathParser.csproj" />
 	  <ProjectReference Include="..\Submodules\Parser\MathParser\MathParser.csproj" />
 	</ItemGroup>
 </Project>

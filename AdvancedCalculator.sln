@@ -5,9 +5,7 @@ VisualStudioVersion = 17.14.36414.22
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AdvancedCalculator", "AdvancedCalculator\AdvancedCalculator.csproj", "{7FB4567D-30C7-4D8C-9257-77E3867B12DF}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MathParser", "Submodules\Parser\MathParser\MathParser.csproj", "{F34DADFD-CCEB-9521-6952-902986B3CCF9}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UtilityCS", "Submodules\Parser\Submodules\UtilityCS\UtilityCS\UtilityCS.csproj", "{EC4DDA64-2EF9-753C-89C1-3C7D4B3F1B33}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MathParser", "Submodules\MathParser\MathParser\MathParser.csproj", "{F34DADFD-CCEB-9521-6952-902986B3CCF9}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

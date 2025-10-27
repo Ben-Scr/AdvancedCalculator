@@ -1,6 +1,6 @@
 ﻿using AdvancedCalculator.Core;
 using AdvancedCalculator.Models;
-using Parser;
+using BenScr.Math.Parser;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
@@ -155,7 +155,7 @@ namespace AdvancedCalculator.ViewModels
         {
             int idx = CursorIndex;
             var expr = Display.Replace("×", "*").Replace("÷", "/").Replace("−", "-");
-            Display = ParserRuntime.Run(expr, evaluator)?.ToString() ?? "0";
+            Display = ParserRuntime.Run(expr, evaluator).ToString();
             ans = Display;
             CursorIndex = Display.Length;
         }
