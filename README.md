@@ -20,10 +20,6 @@ An Advanced C# Calculator for Windows.
 - max(value1, value2, ...)
 - min(value1, value2, ...)
 - clamp(value, min, max)
-- random(min, max)
-- random()
-- toHex(value1, value2, ...)
-- quit()
 
 ## Screenshot
 <img src="Docs/Screen1.png" width="20%" algin="center" alt="Screenshot 1">
