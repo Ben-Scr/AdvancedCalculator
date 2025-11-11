@@ -9,11 +9,8 @@
 	</PropertyGroup>
 
 	<ItemGroup>
+		<PackageReference Include="MathParserCS" Version="1.0.4" />
 		<PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="8.0.0" />
 		<Folder Include="Docs\" />
 	</ItemGroup>
-
-	<ItemGroup>
-	  <ProjectReference Include="..\Submodules\MathParser\MathParser\MathParser.csproj" />
-	</ItemGroup>
-</Project>
+ </Project>
