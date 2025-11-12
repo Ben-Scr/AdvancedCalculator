@@ -29,8 +29,3 @@ An Advanced C# Calculator for Windows.
 - Constant Variables like `π` and `E`
 - Advanced calculations such as `(sin(π ÷ 6)) ^ 2 + (cos(π ÷ 6)) ^ 2 = 1`
 - Random functions
-
-## Planned Features
-- Calculation history
-- Converter
-- Serialization of the last 5 or 10 calculations
