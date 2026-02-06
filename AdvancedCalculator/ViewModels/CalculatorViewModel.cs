@@ -16,14 +16,28 @@ namespace AdvancedCalculator.ViewModels
         public string Display
         {
             get => display;
-            set { display = value; OnPropertyChanged(); }
+            set 
+            { 
+                if(value != null)
+                {
+                    display = value; 
+                    OnPropertyChanged();
+                }
+            }
         }
 
         private int cursorIndex;
         public int CursorIndex
         {
             get => cursorIndex;
-            set { cursorIndex = value; OnPropertyChanged(); }
+            set
+            {
+                if (value >= 0 && value <= Display.Length)
+                {
+                    cursorIndex = value; 
+                    OnPropertyChanged();
+                }
+            }
         }
 
         public ObservableCollection<CalcKey> Keys { get; } = new();
@@ -41,7 +55,7 @@ namespace AdvancedCalculator.ViewModels
             Add("log", keyType: KeyType.Function);
             Add("sin", keyType: KeyType.Function);
             Add("cos", keyType: KeyType.Function);
-            Add("tan" ,keyType: KeyType.Function);
+            Add("tan", keyType: KeyType.Function);
             // Row 2
             Add("(");
             Add(")");
@@ -69,7 +83,7 @@ namespace AdvancedCalculator.ViewModels
             Add("−", keyType: KeyType.Operator);
             // Row 6
             Add("0");
-            Add(".", new RelayCommand(func => AppendDot()));
+            Add(Lexer.FloatingPointSeparator.ToString(), new RelayCommand(func => AppendDot()));
             Add("e", keyType: KeyType.Default);
             Add("Ans", new RelayCommand(func => Append(ans, KeyType.DirectFunction)));
             Add("=", new RelayCommand(func => Evaluate()), isAccent: true);
@@ -95,7 +109,7 @@ namespace AdvancedCalculator.ViewModels
 
             if (displayZeroOrNull && keyType == KeyType.RightOperator) return;
 
-            if(!displayZeroOrNull && (keyType == KeyType.Operator || keyType == KeyType.RightOperator) && s != "^")
+            if (!displayZeroOrNull && (keyType == KeyType.Operator || keyType == KeyType.RightOperator) && s != "^")
             {
                 s = $" {s} ";
             }
@@ -108,9 +122,9 @@ namespace AdvancedCalculator.ViewModels
             {
                 Display = s;
             }
-            else Display = Display.Insert(Math.Clamp(idx, 0, Display.Length), s);
+            else Display = Display.Insert(Math.Clamp(idx, 0, Display.Length), s ?? "0");
 
-            CursorIndex = idx + s.Length;
+            CursorIndex = idx + s?.Length ?? 0;
         }
 
         private void ClearDisplay() { Display = "0"; }
@@ -123,9 +137,9 @@ namespace AdvancedCalculator.ViewModels
             while (i >= 0 && (char.IsDigit(txt[i]) || txt[i] == '.')) i--;
 
             var last = txt[(i + 1)..];
-            if (!last.Contains("."))
+            if (!last.Contains(Lexer.FloatingPointSeparator.ToString()))
             {
-                Append(".", KeyType.Default);
+                Append(Lexer.FloatingPointSeparator.ToString(), KeyType.Default);
             }
         }
 
@@ -152,8 +166,7 @@ namespace AdvancedCalculator.ViewModels
         {
             int idx = CursorIndex;
             var expr = Display.Replace("×", "*").Replace("÷", "/").Replace("−", "-");
-            Display = Calculator.Evaluate(expr).ToString();
-            ans = Display;
+            Display = Calculator.Evaluate<string>(expr);
             CursorIndex = Display.Length;
         }
 
