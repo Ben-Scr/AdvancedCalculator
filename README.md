@@ -1,6 +1,12 @@
 # Advanced C# WPF Calculator
 An Advanced C# Calculator for Windows.
 
+## Current Features
+- Functions such as `sin`, `cos` and `tan`
+- Constant Variables like `pi` and `e`
+- Advanced calculations such as `(sin(pi ÷ 6))^2 + (cos(pi ÷ 6))^2 = 1`
+- Random functions
+
 ## Calculation Examples
 - 20 + 100 / 2 * 4^2 = 820
 - 5 + (-2) - (-12) = 15
@@ -23,9 +29,3 @@ An Advanced C# Calculator for Windows.
 
 ## Screenshot
 <img src="Docs/Screen1.png" width="20%" algin="center" alt="Screenshot 1">
-
-## Current Features
-- Functions such as `sin`, `cos` and `tan`
-- Constant Variables like `π` and `E`
-- Advanced calculations such as `(sin(π ÷ 6)) ^ 2 + (cos(π ÷ 6)) ^ 2 = 1`
-- Random functions
