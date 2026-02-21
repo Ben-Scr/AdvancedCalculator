@@ -28,5 +28,9 @@ A Github style like C# Calculator for Windows.
 - clamp(value, min, max)
 
 ## Preview
+<p align="center">
 <img src="Docs/Preview_1.png" width="20%" algin="center" alt="Preview 1">
 <img src="Docs/Preview_2.png" width="20%" algin="center" alt="Preview 2">
+</p>
+
+
