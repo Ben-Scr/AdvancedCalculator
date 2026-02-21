@@ -12,7 +12,6 @@ namespace AdvancedCalculator.ViewModels
     public class CalculatorViewModel : INotifyPropertyChanged
     {
         private string display = "0";
-        private string expressionPreview = string.Empty;
         public string Display
         {
             get => display;
@@ -26,6 +25,8 @@ namespace AdvancedCalculator.ViewModels
             }
         }
 
+        
+        private string expressionPreview = string.Empty;
         public string ExpressionPreview
         {
             get => expressionPreview;
@@ -129,7 +130,6 @@ namespace AdvancedCalculator.ViewModels
             {
                 s = $"{s}(";
             }
-
             if ((displayZeroOrNull || Display == ans) && keyType != KeyType.RightOperator)
             {
                 Display = s;
