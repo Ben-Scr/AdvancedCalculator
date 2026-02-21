@@ -1,5 +1,5 @@
-# Advanced C# WPF Calculator
-An Advanced C# Calculator for Windows.
+# C# WPF Calculator
+A Github style like C# Calculator for Windows.
 
 ## Current Features
 - Functions such as `sin`, `cos` and `tan`
@@ -28,4 +28,4 @@ An Advanced C# Calculator for Windows.
 - clamp(value, min, max)
 
 ## Screenshot
-<img src="Docs/Screen1.png" width="20%" algin="center" alt="Screenshot 1">
+<img src="Docs/Preview_1.png" width="20%" algin="center" alt="Preview 1">
