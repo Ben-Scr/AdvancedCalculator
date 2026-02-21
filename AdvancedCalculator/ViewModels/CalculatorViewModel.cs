@@ -12,7 +12,7 @@ namespace AdvancedCalculator.ViewModels
     public class CalculatorViewModel : INotifyPropertyChanged
     {
         private string display = "0";
-
+        private string expressionPreview = string.Empty;
         public string Display
         {
             get => display;
@@ -23,6 +23,16 @@ namespace AdvancedCalculator.ViewModels
                     display = value; 
                     OnPropertyChanged();
                 }
+            }
+        }
+
+        public string ExpressionPreview
+        {
+            get => expressionPreview;
+            set
+            {
+                expressionPreview = value ?? string.Empty;
+                OnPropertyChanged();
             }
         }
 
@@ -101,6 +111,8 @@ namespace AdvancedCalculator.ViewModels
             Keys.Add(new CalcKey { Label = label, Command = command, IsAccent = isAccent });
         }
 
+
+
         private void Append(string s, KeyType keyType)
         {
             int idx = cursorIndex;
@@ -127,7 +139,12 @@ namespace AdvancedCalculator.ViewModels
             CursorIndex = idx + s?.Length ?? 0;
         }
 
-        private void ClearDisplay() { Display = "0"; }
+        private void ClearDisplay()
+        {
+            Display = "0";
+            ExpressionPreview = string.Empty;
+        }
+
 
         private void AppendDot()
         {
@@ -164,9 +181,10 @@ namespace AdvancedCalculator.ViewModels
 
         private void Evaluate()
         {
-            int idx = CursorIndex;
+            ExpressionPreview = $"{Display} =";
             var expr = Display.Replace("×", "*").Replace("÷", "/").Replace("−", "-");
             Display = Calculator.Evaluate<string>(expr);
+            ans = Display;
             CursorIndex = Display.Length;
         }
 

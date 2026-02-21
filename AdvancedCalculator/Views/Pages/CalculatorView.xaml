@@ -9,9 +9,29 @@
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
-        <TextBox Grid.Row="0"
-                 Style="{StaticResource DisplayBox}"
-                 Text="{Binding Display, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+        <Border Grid.Row="0" Style="{StaticResource DisplayBox}">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+
+                <TextBlock Grid.Row="0"
+                           Margin="0,4,0,0"
+                           HorizontalAlignment="Right"
+                           Foreground="{StaticResource Foreground.Secondary}"
+                           FontSize="18"
+                           Text="{Binding ExpressionPreview}"/>
+
+                <TextBlock Grid.Row="1"
+                           HorizontalAlignment="Right"
+                           VerticalAlignment="Bottom"
+                           Foreground="{StaticResource Foreground.Emphasis}"
+                           FontSize="44"
+                           FontWeight="SemiBold"
+                           Text="{Binding Display}"/>
+            </Grid>
+        </Border>
 
         <ItemsControl Grid.Row="1" ItemsSource="{Binding Keys}">
             <ItemsControl.ItemsPanel>

@@ -81,37 +81,15 @@
 		<Setter Property="Height" Value="48"/>
 	</Style>
 
-    <Style TargetType="TextBox" x:Key="DisplayBox">
+    <Style TargetType="Border" x:Key="DisplayBox">
 
-        <Setter Property="FontSize" Value="30"/>
-        <Setter Property="Foreground" Value="{StaticResource Foreground.Emphasis}"/>
+        <Setter Property="Margin" Value="0 0 0 6"/>
+        <Setter Property="Height" Value="100"/>
+        <Setter Property="Padding" Value="12 8"/>
         <Setter Property="Background" Value="{StaticResource Background.Default}"/>
         <Setter Property="BorderBrush" Value="{StaticResource Border.Default}"/>
         <Setter Property="BorderThickness" Value="1"/>
-        <Setter Property="Padding" Value= "5 0 0 0"/>
-        <Setter Property="HorizontalContentAlignment" Value="Left"/>
-        <Setter Property="VerticalContentAlignment" Value="Center"/>
-
-        <Setter Property="Template">
-            <Setter.Value>
-                <ControlTemplate TargetType="TextBox">
-
-                    <Border x:Name="Border"
-                        CornerRadius="10"
-                        Background="{TemplateBinding Background}"
-                        BorderBrush="{TemplateBinding BorderBrush}"
-                        BorderThickness="{TemplateBinding BorderThickness}">
-
-                        <ScrollViewer x:Name="PART_ContentHost"
-                                  Margin="{TemplateBinding Padding}"
-                                  HorizontalScrollBarVisibility="Hidden"
-                                  VerticalScrollBarVisibility="Hidden"/>
-
-                    </Border>
-
-                </ControlTemplate>
-            </Setter.Value>
-        </Setter>
+        <Setter Property="CornerRadius" Value="10"/>
 
     </Style>
 </ResourceDictionary>
