@@ -5,7 +5,6 @@ A Github style like C# Calculator for Windows.
 - Functions such as `sin`, `cos` and `tan`
 - Constant Variables like `pi` and `e`
 - Understanding of Advanced expressions such as `(sin(pi ÷ 6))^2 + (cos(pi ÷ 6))^2 = 1`
-- Random functions
 
 ## Calculation Examples
 - 20 + 100 / 2 * 4^2 = 820
