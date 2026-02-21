@@ -1,16 +1,26 @@
 ﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
-	<!-- Dark Theme -->
-	<Color x:Key="Surface">#272537</Color>
-	<Color x:Key="SurfaceAlt">#2f2c41</Color>
-	<Color x:Key="Accent">#6C63FF</Color>
-	<Color x:Key="AccentAlt">#8B84FF</Color>
-	<Color x:Key="OnSurface">#FFFFFF</Color>
-	<Color x:Key="OnSurfaceDim">#CFCFCF</Color>
-	<SolidColorBrush x:Key="Brush.Surface" Color="{StaticResource Surface}"/>
-	<SolidColorBrush x:Key="Brush.SurfaceAlt" Color="{StaticResource SurfaceAlt}"/>
-	<SolidColorBrush x:Key="Brush.Accent" Color="{StaticResource Accent}"/>
-	<SolidColorBrush x:Key="Brush.AccentAlt" Color="{StaticResource AccentAlt}"/>
-	<SolidColorBrush x:Key="Brush.OnSurface" Color="{StaticResource OnSurface}"/>
-	<SolidColorBrush x:Key="Brush.OnSurfaceDim" Color="{StaticResource OnSurfaceDim}"/>
+
+    <SolidColorBrush x:Key="Background.Default" Color="#0D1117"/>
+
+    <SolidColorBrush x:Key="Border.Default" Color="#30363D"/>
+
+    <SolidColorBrush x:Key="Foreground.Primary" Color="#E6EDF3"/>
+    <SolidColorBrush x:Key="Foreground.Secondary" Color="#7D8590"/>
+    <SolidColorBrush x:Key="Foreground.Emphasis"  Color="#FFFFFF"/>
+    <SolidColorBrush x:Key="Foreground.Placeholder" Color="#6E7681"/>
+
+    <SolidColorBrush x:Key="Button.Default" Color="#21262D"/>
+    <SolidColorBrush x:Key="Button.Hover" Color="#30363D"/>
+    <SolidColorBrush x:Key="Button.Pressed" Color="#161B22"/>
+
+    <SolidColorBrush x:Key="PrimaryButton.Default" Color="#238636"/>
+    <SolidColorBrush x:Key="PrimaryButton.Hover" Color="#2EA043"/>
+    <SolidColorBrush x:Key="PrimaryButton.Pressed" Color="#238636"/>
+    <SolidColorBrush x:Key="PrimaryButton.Disabled" Color="#238636"/>
+
+    <SolidColorBrush x:Key="DangerButton.Default" Color="#DA3633"/>
+    <SolidColorBrush x:Key="DangerButton.Hover" Color="#F85149"/>
+    <SolidColorBrush x:Key="DangerButton.Pressed" Color="#B62324"/>
+    <SolidColorBrush x:Key="DangerButton.Disabled" Color="#DA3633"/>
 </ResourceDictionary>

@@ -1,18 +1,18 @@
 ﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
-	<Style TargetType="Button" x:Key="CalcButton">
+	<Style TargetType="Button" x:Key="DefaultButton">
 		<Setter Property="Margin" Value="6"/>
 		<Setter Property="FontSize" Value="18"/>
-		<Setter Property="Foreground" Value="White"/>
-		<Setter Property="Background" Value="#2F2C41"/>
-		<Setter Property="BorderBrush" Value="#3A3842"/>
+        <Setter Property="Foreground" Value="{StaticResource Foreground.Primary}"/>
+        <Setter Property="Background" Value="{StaticResource Background.Default}"/>
+        <Setter Property="BorderBrush" Value="{StaticResource Border.Default}"/>
 		<Setter Property="BorderThickness" Value="1"/>
 		<Setter Property="HorizontalAlignment" Value="Stretch"/>
 		<Setter Property="VerticalAlignment" Value="Stretch"/>
 		<Setter Property="Template">
 			<Setter.Value>
 				<ControlTemplate TargetType="Button">
-					<Border CornerRadius="10"
+					<Border CornerRadius="7"
 							Background="{TemplateBinding Background}"
 							BorderBrush="{TemplateBinding BorderBrush}"
 							BorderThickness="{TemplateBinding BorderThickness}"
@@ -21,13 +21,13 @@
 					</Border>
 					<ControlTemplate.Triggers>
 						<Trigger Property="IsMouseOver" Value="True">
-							<Setter Property="Background" Value="#3a3750"/>
+                            <Setter Property="Background" Value="{StaticResource Button.Hover}"/>
 						</Trigger>
 						<Trigger Property="IsPressed" Value="True">
-							<Setter Property="Background" Value="#34324a"/>
+                            <Setter Property="Background" Value="{StaticResource Button.Pressed}"/>
 						</Trigger>
 						<Trigger Property="IsEnabled" Value="False">
-							<Setter Property="Opacity" Value="0.6"/>
+							<Setter Property="Opacity" Value="0.4"/>
 						</Trigger>
 					</ControlTemplate.Triggers>
 				</ControlTemplate>
@@ -35,22 +35,83 @@
 		</Setter>
 	</Style>
 
-	<Style TargetType="Button" x:Key="AccentButton" BasedOn="{StaticResource CalcButton}">
-		<Setter Property="Background" Value="{StaticResource Brush.Accent}"/>
-		<Setter Property="BorderBrush" Value="{StaticResource Brush.AccentAlt}"/>
-		<Setter Property="Foreground" Value="White"/>
+    <Style x:Key="DangerButton"
+       TargetType="Button"
+       BasedOn="{StaticResource DefaultButton}">
+
+        <Setter Property="Background"
+            Value="{StaticResource DangerButton.Default}" />
+
+        <Style.Triggers>
+            <Trigger Property="IsMouseOver" Value="True">
+                <Setter Property="Background"
+                    Value="{StaticResource DangerButton.Hover}" />
+            </Trigger>
+            <Trigger Property="IsPressed" Value="True">
+                <Setter Property="Background"
+         Value="{StaticResource DangerButton.Pressed}" />
+            </Trigger>
+        </Style.Triggers>
+    </Style>
+
+    <Style x:Key="PrimaryButton"
+    TargetType="Button"
+    BasedOn="{StaticResource DefaultButton}">
+
+        <Setter Property="Background"
+         Value="{StaticResource PrimaryButton.Default}" />
+
+        <Style.Triggers>
+            <Trigger Property="IsMouseOver" Value="True">
+                <Setter Property="Background"
+                 Value="{StaticResource PrimaryButton.Hover}" />
+            </Trigger>
+            <Trigger Property="IsPressed" Value="True">
+                <Setter Property="Background"
+      Value="{StaticResource PrimaryButton.Pressed}" />
+            </Trigger>
+        </Style.Triggers>
+    </Style>
+
+    <Style TargetType="Button" x:Key="AccentButton" BasedOn="{StaticResource DefaultButton}">
+		<Setter Property="Background" Value="{StaticResource Button.Default}"/>
+		<Setter Property="BorderBrush" Value="{StaticResource Border.Default}"/>
+		<Setter Property="Foreground" Value="{StaticResource Foreground.Primary}"/>
 		<Setter Property="FontWeight" Value="SemiBold"/>
 		<Setter Property="Height" Value="48"/>
 	</Style>
 
-	<Style TargetType="TextBox" x:Key="DisplayBox">
-		<Setter Property="FontSize" Value="30"/>
-		<Setter Property="Foreground" Value="{StaticResource Brush.OnSurface}"/>
-		<Setter Property="Background" Value="#1F1D29"/>
-		<Setter Property="BorderThickness" Value="0"/>
-		<Setter Property="Padding" Value="12"/>
-		<Setter Property="HorizontalContentAlignment" Value="Right"/>
-		<Setter Property="VerticalContentAlignment" Value="Center"/>
-		<Setter Property="Height" Value="64"/>
-	</Style>
+    <Style TargetType="TextBox" x:Key="DisplayBox">
+
+        <Setter Property="FontSize" Value="30"/>
+        <Setter Property="Foreground" Value="{StaticResource Foreground.Emphasis}"/>
+        <Setter Property="Background" Value="{StaticResource Background.Default}"/>
+        <Setter Property="BorderBrush" Value="{StaticResource Border.Default}"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="Padding" Value= "5 0 0 0"/>
+        <Setter Property="HorizontalContentAlignment" Value="Left"/>
+        <Setter Property="VerticalContentAlignment" Value="Center"/>
+
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="TextBox">
+
+                    <Border x:Name="Border"
+                        CornerRadius="10"
+                        Background="{TemplateBinding Background}"
+                        BorderBrush="{TemplateBinding BorderBrush}"
+                        BorderThickness="{TemplateBinding BorderThickness}">
+
+                        <ScrollViewer x:Name="PART_ContentHost"
+                                  Margin="{TemplateBinding Padding}"
+                                  HorizontalScrollBarVisibility="Hidden"
+                                  VerticalScrollBarVisibility="Hidden"/>
+
+                    </Border>
+
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+
+    </Style>
 </ResourceDictionary>
