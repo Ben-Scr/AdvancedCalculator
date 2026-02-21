@@ -1,4 +1,4 @@
-# C# WPF Calculator
+# Smart C# WPF Calculator
 A Github style like C# Calculator for Windows.
 
 ## Current Features
