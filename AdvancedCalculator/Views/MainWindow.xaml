@@ -1,42 +1,288 @@
-﻿<Window x:Class="AdvancedCalculator.Views.MainWindow"
+<Window x:Class="AdvancedCalculator.Views.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:controls="clr-namespace:AdvancedCalculator.Controls"
+        xmlns:core="clr-namespace:AdvancedCalculator.Core"
         xmlns:shell="clr-namespace:System.Windows.Shell;assembly=PresentationFramework"
-        xmlns:views="clr-namespace:AdvancedCalculator.Views"
-        xmlns:controls="clr-namespace:AdvancedCalculator.Views.Controls"
-        xmlns:pages="clr-namespace:AdvancedCalculator.Views.Pages"
-        Title="AdvancedCalculator"
-        Width="360" Height="500"
+        Title="Smart Calculator"
+        Width="430"
+        Height="760"
+        MinWidth="380"
+        MinHeight="520"
         WindowStyle="None"
         ResizeMode="CanResize"
-        Background="Transparent"
-        MinWidth="360"
-        MinHeight="480"
-        AllowsTransparency="True">
+        Background="{DynamicResource AppBackgroundBrush}"
+        Opacity="0">
+    <Window.Triggers>
+        <EventTrigger RoutedEvent="Loaded">
+            <BeginStoryboard>
+                <Storyboard>
+                    <DoubleAnimation Storyboard.TargetProperty="Opacity"
+                                     From="0"
+                                     To="1"
+                                     Duration="0:0:0.35" />
+                </Storyboard>
+            </BeginStoryboard>
+        </EventTrigger>
+    </Window.Triggers>
 
     <shell:WindowChrome.WindowChrome>
-        <shell:WindowChrome CaptionHeight="44"
-                            CornerRadius="14"
-                            UseAeroCaptionButtons="False"
-                            ResizeBorderThickness="5"/>
+        <shell:WindowChrome CaptionHeight="48"
+                            CornerRadius="0"
+                            GlassFrameThickness="0"
+                            ResizeBorderThickness="6"
+                            UseAeroCaptionButtons="False" />
     </shell:WindowChrome.WindowChrome>
 
-    <Border CornerRadius="10"
-            Background="{StaticResource Background.Default}"
-            BorderBrush="{StaticResource Border.Default}"
+    <Border Background="{DynamicResource AppBackgroundBrush}"
+            BorderBrush="{DynamicResource BorderBrush}"
             BorderThickness="1"
             SnapsToDevicePixels="True">
-
         <Grid>
             <Grid.RowDefinitions>
-                <RowDefinition Height="44"/>
-                <RowDefinition Height="*"/>
+                <RowDefinition Height="48" />
+                <RowDefinition Height="*" />
             </Grid.RowDefinitions>
 
-            <controls:TitleBar Grid.Row="0"/>
+            <Border Grid.Row="0"
+                    Background="{DynamicResource SurfaceBrush}"
+                    BorderBrush="{DynamicResource BorderBrush}"
+                    BorderThickness="0,0,0,1">
+                <Grid MouseLeftButtonDown="TitleBar_OnMouseLeftButtonDown">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
 
-            <pages:CalculatorView Grid.Row="1" Margin="14"
-                                  DataContext="{Binding Calculator}"/>
+                    <StackPanel Orientation="Horizontal"
+                                VerticalAlignment="Center"
+                                Margin="16,0,0,0">
+                        <TextBlock Text="Smart Calculator"
+                                   FontSize="15"
+                                   FontWeight="SemiBold"
+                                   VerticalAlignment="Center" />
+                    </StackPanel>
+
+                    <StackPanel Grid.Column="1"
+                                Orientation="Horizontal"
+                                VerticalAlignment="Center"
+                                Margin="0,0,6,0"
+                                shell:WindowChrome.IsHitTestVisibleInChrome="True">
+                        <controls:AnimatedButton Style="{StaticResource ToolbarButtonStyle}"
+                                                 Command="{Binding ToggleHistoryCommand}"
+                                                 ToolTip="Verlauf ein- oder ausblenden"
+                                                 Margin="0,0,8,0"
+                                                 Content="&#x1F552;" />
+                        <controls:AnimatedButton Style="{StaticResource ToolbarButtonStyle}"
+                                                 Command="{Binding ToggleThemeCommand}"
+                                                 ToolTip="{Binding ThemeToggleToolTip}"
+                                                 Margin="0,0,12,0"
+                                                 Content="{Binding ThemeToggleGlyph}" />
+                        <controls:AnimatedButton Style="{StaticResource WindowCommandButtonStyle}"
+                                                 Click="Minimize_OnClick"
+                                                 Content="-" />
+                        <controls:AnimatedButton Style="{StaticResource WindowCommandButtonStyle}"
+                                                 Click="MaximizeRestore_OnClick"
+                                                 Content="[]" />
+                        <controls:AnimatedButton Style="{StaticResource CloseWindowButtonStyle}"
+                                                 Click="Close_OnClick"
+                                                 Content="X" />
+                    </StackPanel>
+                </Grid>
+            </Border>
+
+            <Grid Grid.Row="1" Margin="20">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                </Grid.RowDefinitions>
+
+                <StackPanel Grid.Row="0">
+                    <TextBlock Text="Ausdruck"
+                               Foreground="{DynamicResource MutedTextBrush}"
+                               Margin="0,0,0,8" />
+                    <Border Background="{DynamicResource SurfaceRaisedBrush}"
+                            BorderBrush="{DynamicResource BorderBrush}"
+                            BorderThickness="1"
+                            CornerRadius="8"
+                            Padding="14,12">
+                        <TextBox x:Name="ExpressionTextBox"
+                                 Text="{Binding Expression, UpdateSourceTrigger=PropertyChanged}"
+                                 HorizontalAlignment="Stretch"
+                                 HorizontalContentAlignment="Stretch"
+                                 Style="{StaticResource ExpressionTextBoxStyle}"
+                                 core:CaretIndexBinding.Enable="True"
+                                 core:CaretIndexBinding.CaretIndex="{Binding CaretIndex, Mode=TwoWay}">
+                            <TextBox.InputBindings>
+                                <KeyBinding Key="Enter" Command="{Binding EvaluateCommand}" />
+                                <KeyBinding Key="Escape" Command="{Binding ClearCommand}" />
+                            </TextBox.InputBindings>
+                        </TextBox>
+                    </Border>
+                </StackPanel>
+
+                <Border x:Name="ErrorContainer"
+                        Grid.Row="1"
+                        Margin="0,12,0,0"
+                        Padding="12,10"
+                        Background="{DynamicResource ErrorBackgroundBrush}"
+                        BorderBrush="{DynamicResource ErrorAccentBrush}"
+                        BorderThickness="4,0,0,0"
+                        CornerRadius="6"
+                        ClipToBounds="True"
+                        MaxHeight="0"
+                        Opacity="0"
+                        Visibility="Collapsed">
+                    <TextBlock Text="{Binding ErrorMessage}"
+                               Foreground="{DynamicResource TextBrush}"
+                               TextWrapping="Wrap" />
+                </Border>
+
+                <Border Grid.Row="2"
+                        Margin="0,16,0,18"
+                        Padding="16"
+                        Background="{DynamicResource SurfaceBrush}"
+                        BorderBrush="{DynamicResource BorderBrush}"
+                        BorderThickness="1"
+                        CornerRadius="10">
+                    <StackPanel>
+                        <TextBlock Text="Ergebnis"
+                                   Foreground="{DynamicResource MutedTextBrush}" />
+                        <TextBlock x:Name="ResultTextBlock"
+                                   Text="{Binding Result}"
+                                   Margin="0,8,0,0"
+                                   FontSize="28"
+                                   FontWeight="SemiBold"
+                                   Foreground="{DynamicResource ResultBrush}"
+                                   TextWrapping="Wrap" />
+                    </StackPanel>
+                </Border>
+
+                <TextBlock Grid.Row="3"
+                           Text="Tasten"
+                           Margin="0,0,0,10"
+                           Foreground="{DynamicResource MutedTextBrush}" />
+
+                <ItemsControl Grid.Row="4"
+                              ItemsSource="{Binding Keys}">
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <UniformGrid Rows="7" Columns="5" />
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <controls:AnimatedButton Margin="5"
+                                                     Content="{Binding Label}"
+                                                     Command="{Binding Command}"
+                                                     CommandParameter="{Binding CommandParameter}"
+                                                     IsEnabled="{Binding IsEnabled}"
+                                                     Style="{StaticResource CalculatorKeyButtonStyle}" />
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </Grid>
+
+            <Border x:Name="HistorySidebar"
+                    Grid.RowSpan="2"
+                    Width="0"
+                    HorizontalAlignment="Right"
+                    VerticalAlignment="Stretch"
+                    Margin="0,48,0,0"
+                    Padding="18,18,18,20"
+                    Background="{DynamicResource SurfaceBrush}"
+                    BorderBrush="{DynamicResource BorderBrush}"
+                    BorderThickness="1,0,0,0"
+                    Panel.ZIndex="10"
+                    ClipToBounds="True">
+                <Border.Effect>
+                    <DropShadowEffect BlurRadius="18"
+                                      Direction="180"
+                                      Opacity="0.35"
+                                      ShadowDepth="0"
+                                      Color="{DynamicResource SidebarShadowColor}" />
+                </Border.Effect>
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+
+                    <Grid Grid.Row="0" Margin="0,0,0,14">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <StackPanel>
+                            <TextBlock Text="Verlauf"
+                                       FontSize="15"
+                                       FontWeight="SemiBold" />
+                            <TextBlock Text="Letzte Berechnungen"
+                                       Margin="0,4,0,0"
+                                       Foreground="{DynamicResource MutedTextBrush}" />
+                        </StackPanel>
+                        <controls:AnimatedButton Grid.Column="1"
+                                                 Style="{StaticResource FlatSidebarButtonStyle}"
+                                                 Command="{Binding ClearHistoryCommand}"
+                                                 Content="Verlauf l&#246;schen" />
+                    </Grid>
+
+                    <Grid Grid.Row="1">
+                        <TextBlock Text="Noch keine Berechnungen gespeichert."
+                                   Foreground="{DynamicResource MutedTextBrush}"
+                                   Visibility="{Binding History.IsEmpty, Converter={StaticResource BooleanToVisibilityConverter}}"
+                                   VerticalAlignment="Top" />
+
+                        <ScrollViewer VerticalScrollBarVisibility="Auto"
+                                      Visibility="{Binding History.HasEntries, Converter={StaticResource BooleanToVisibilityConverter}}">
+                            <ItemsControl ItemsSource="{Binding History.Entries}">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Grid Margin="0,0,0,10">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*" />
+                                                <ColumnDefinition Width="Auto" />
+                                            </Grid.ColumnDefinitions>
+
+                                            <controls:AnimatedButton Grid.Column="0"
+                                                                     Style="{StaticResource HistoryEntryButtonStyle}"
+                                                    Command="{Binding DataContext.LoadHistoryEntryCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                     CommandParameter="{Binding}">
+                                                <StackPanel>
+                                                    <TextBlock Text="{Binding Expression}"
+                                                               TextWrapping="Wrap"
+                                                               FontWeight="SemiBold" />
+                                                    <TextBlock Margin="0,8,0,0"
+                                                               FontSize="18"
+                                                               FontWeight="SemiBold"
+                                                               Foreground="{DynamicResource ResultBrush}">
+                                                        <Run Text="= " />
+                                                        <Run Text="{Binding Result}" />
+                                                    </TextBlock>
+                                                    <TextBlock Text="{Binding Timestamp, StringFormat={}{0:dd.MM.yyyy HH:mm:ss}}"
+                                                               Margin="0,8,0,0"
+                                                               Foreground="{DynamicResource MutedTextBrush}" />
+                                                </StackPanel>
+                                            </controls:AnimatedButton>
+
+                                            <controls:AnimatedButton Grid.Column="1"
+                                                                     Style="{StaticResource DangerIconButtonStyle}"
+                                                                     Margin="10,0,0,0"
+                                                                     VerticalAlignment="Top"
+                                                                     Command="{Binding DataContext.DeleteHistoryEntryCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                                     CommandParameter="{Binding}"
+                                                                     Content="&#x1F5D1;" />
+                                        </Grid>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </ScrollViewer>
+                    </Grid>
+                </Grid>
+            </Border>
         </Grid>
     </Border>
 </Window>

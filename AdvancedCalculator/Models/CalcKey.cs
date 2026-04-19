@@ -1,24 +1,16 @@
-﻿using System.Windows.Input;
+using System.Windows.Input;
 
-namespace AdvancedCalculator.Models
+namespace AdvancedCalculator.Models;
+
+public sealed class CalcKey
 {
-    public enum KeyType
-    {
-        Default,
-        Operator,
-        RightOperator,
-        LeftOperator,
-        Digit,
-        Function,
-        DirectFunction,
-    }
+    public string Label { get; init; } = string.Empty;
 
-    public class CalcKey
-    {
-        public string Label { get; set; } = "";
-        public object? CommandParameter { get; set; }
-        public ICommand? Command { get; set; }
-        public bool IsAccent { get; set; }
-        public bool IsEnabled { get; set; } = true;
-    }
+    public object? CommandParameter { get; init; }
+
+    public ICommand? Command { get; init; }
+
+    public bool IsAccent { get; init; }
+
+    public bool IsEnabled { get; init; } = true;
 }
