@@ -57,6 +57,8 @@
         <Setter Property="Width" Value="34" />
         <Setter Property="Height" Value="32" />
         <Setter Property="Padding" Value="0" />
+        <Setter Property="VerticalContentAlignment" Value="Center"/>
+        <Setter Property="HorizontalContentAlignment" Value="Center"/>
         <Setter Property="FontSize" Value="14" />
         <Setter Property="FontWeight" Value="SemiBold" />
         <Setter Property="NormalColor" Value="{DynamicResource SurfaceColor}" />
@@ -68,11 +70,15 @@
            TargetType="{x:Type controls:AnimatedButton}"
            BasedOn="{StaticResource ToolbarButtonStyle}">
         <Setter Property="Width" Value="42" />
+        <Setter Property="VerticalContentAlignment" Value="Center"/>
+        <Setter Property="HorizontalContentAlignment" Value="Center"/>
     </Style>
 
     <Style x:Key="CloseWindowButtonStyle"
            TargetType="{x:Type controls:AnimatedButton}"
            BasedOn="{StaticResource WindowCommandButtonStyle}">
+        <Setter Property="VerticalContentAlignment" Value="Center"/>
+        <Setter Property="HorizontalContentAlignment" Value="Center"/>
         <Setter Property="Foreground" Value="White" />
         <Setter Property="BorderBrush" Value="{DynamicResource DangerBrush}" />
         <Setter Property="NormalColor" Value="{DynamicResource DangerColor}" />
@@ -106,6 +112,8 @@
            BasedOn="{StaticResource {x:Type controls:AnimatedButton}}">
         <Setter Property="CornerRadius" Value="8" />
         <Setter Property="Padding" Value="14,12" />
+        <Setter Property="VerticalContentAlignment" Value="Center"/>
+        <Setter Property="HorizontalContentAlignment" Value="Center"/>
         <Setter Property="HorizontalContentAlignment" Value="Stretch" />
         <Setter Property="VerticalContentAlignment" Value="Stretch" />
         <Setter Property="NormalColor" Value="{DynamicResource SurfaceRaisedColor}" />

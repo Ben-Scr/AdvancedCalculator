@@ -28,7 +28,7 @@
 
     <shell:WindowChrome.WindowChrome>
         <shell:WindowChrome CaptionHeight="48"
-                            CornerRadius="0"
+                            CornerRadius="10"
                             GlassFrameThickness="0"
                             ResizeBorderThickness="6"
                             UseAeroCaptionButtons="False" />
@@ -36,7 +36,7 @@
 
     <Border Background="{DynamicResource AppBackgroundBrush}"
             BorderBrush="{DynamicResource BorderBrush}"
-            BorderThickness="1"
+            BorderThickness="0"
             SnapsToDevicePixels="True">
         <Grid>
             <Grid.RowDefinitions>
@@ -86,7 +86,7 @@
                                                  Content="[]" />
                         <controls:AnimatedButton Style="{StaticResource CloseWindowButtonStyle}"
                                                  Click="Close_OnClick"
-                                                 Content="X" />
+                                                 Content="X"/>
                     </StackPanel>
                 </Grid>
             </Border>
