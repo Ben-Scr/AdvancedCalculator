@@ -1,6 +1,6 @@
 using System.Windows.Input;
 
-namespace AdvancedCalculator.Core;
+namespace BenScr.AdvancedCalculator.Core;
 
 public sealed class RelayCommand : ICommand
 {

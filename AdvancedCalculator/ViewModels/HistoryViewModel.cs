@@ -1,9 +1,9 @@
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
-using AdvancedCalculator.Core;
-using AdvancedCalculator.Models;
+using BenScr.AdvancedCalculator.Core;
+using BenScr.AdvancedCalculator.Models;
 
-namespace AdvancedCalculator.ViewModels;
+namespace BenScr.AdvancedCalculator.ViewModels;
 
 public sealed class HistoryViewModel : ObservableObject
 {

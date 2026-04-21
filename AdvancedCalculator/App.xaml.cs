@@ -1,9 +1,9 @@
 using System.Windows;
-using AdvancedCalculator.Services;
-using AdvancedCalculator.ViewModels;
-using AdvancedCalculator.Views;
+using BenScr.AdvancedCalculator.Services;
+using BenScr.AdvancedCalculator.ViewModels;
+using BenScr.AdvancedCalculator.Views;
 
-namespace AdvancedCalculator;
+namespace BenScr.AdvancedCalculator;
 
 public partial class App : Application
 {

@@ -2,9 +2,9 @@ using System.Diagnostics;
 using System.IO;
 using System.Text;
 using System.Text.Json;
-using AdvancedCalculator.Models;
+using BenScr.AdvancedCalculator.Models;
 
-namespace AdvancedCalculator.Services;
+namespace BenScr.AdvancedCalculator.Services;
 
 public sealed class SettingsService
 {
@@ -47,11 +47,19 @@ public sealed class SettingsService
         {
             Directory.CreateDirectory(UserDataPaths.BaseDirectory);
 
-            if (!File.Exists(UserDataPaths.SettingsFilePath))
+            if (File.Exists(UserDataPaths.SettingsFilePath))
             {
-                var json = JsonSerializer.Serialize(new UserSettings(), UserDataPaths.JsonOptions);
-                await File.WriteAllTextAsync(UserDataPaths.SettingsFilePath, json, Encoding.UTF8);
+                return;
             }
+
+            if (File.Exists(UserDataPaths.LegacySettingsFilePath))
+            {
+                File.Copy(UserDataPaths.LegacySettingsFilePath, UserDataPaths.SettingsFilePath);
+                return;
+            }
+
+            var json = JsonSerializer.Serialize(new UserSettings(), UserDataPaths.JsonOptions);
+            await File.WriteAllTextAsync(UserDataPaths.SettingsFilePath, json, Encoding.UTF8);
         }
         catch (Exception ex)
         {
@@ -62,9 +70,11 @@ public sealed class SettingsService
     private static UserSettings Normalize(UserSettings? settings)
     {
         var theme = settings?.Theme?.Trim().ToLowerInvariant();
+
         return new UserSettings
         {
-            Theme = theme is "light" ? "light" : "dark"
+            Theme = theme is "light" ? "light" : "dark",
+            LiveCalculationEnabled = settings?.LiveCalculationEnabled ?? true
         };
     }
 }

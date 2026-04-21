@@ -1,4 +1,4 @@
-namespace AdvancedCalculator.Models;
+namespace BenScr.AdvancedCalculator.Models;
 
 public sealed class CalculationHistoryItem
 {

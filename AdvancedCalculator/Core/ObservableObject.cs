@@ -1,7 +1,7 @@
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 
-namespace AdvancedCalculator.Core;
+namespace BenScr.AdvancedCalculator.Core;
 
 public abstract class ObservableObject : INotifyPropertyChanged
 {

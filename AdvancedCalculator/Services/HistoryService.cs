@@ -2,9 +2,9 @@ using System.Diagnostics;
 using System.IO;
 using System.Text;
 using System.Text.Json;
-using AdvancedCalculator.Models;
+using BenScr.AdvancedCalculator.Models;
 
-namespace AdvancedCalculator.Services;
+namespace BenScr.AdvancedCalculator.Services;
 
 public sealed class HistoryService
 {
@@ -46,10 +46,18 @@ public sealed class HistoryService
         {
             Directory.CreateDirectory(UserDataPaths.BaseDirectory);
 
-            if (!File.Exists(UserDataPaths.HistoryFilePath))
+            if (File.Exists(UserDataPaths.HistoryFilePath))
             {
-                await File.WriteAllTextAsync(UserDataPaths.HistoryFilePath, "[]", Encoding.UTF8);
+                return;
             }
+
+            if (File.Exists(UserDataPaths.LegacyHistoryFilePath))
+            {
+                File.Copy(UserDataPaths.LegacyHistoryFilePath, UserDataPaths.HistoryFilePath);
+                return;
+            }
+
+            await File.WriteAllTextAsync(UserDataPaths.HistoryFilePath, "[]", Encoding.UTF8);
         }
         catch (Exception ex)
         {

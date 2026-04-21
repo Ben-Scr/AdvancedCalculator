@@ -1,6 +1,6 @@
 using System.Windows.Input;
 
-namespace AdvancedCalculator.Models;
+namespace BenScr.AdvancedCalculator.Models;
 
 public sealed class CalcKey
 {

@@ -1,19 +1,37 @@
 using System.Collections.ObjectModel;
 using System.Windows;
-using AdvancedCalculator.Core;
-using AdvancedCalculator.Models;
-using AdvancedCalculator.Services;
+using BenScr.AdvancedCalculator.Core;
+using BenScr.AdvancedCalculator.Models;
+using BenScr.AdvancedCalculator.Services;
 
-namespace AdvancedCalculator.ViewModels;
+namespace BenScr.AdvancedCalculator.ViewModels;
 
 public sealed class MainViewModel : ObservableObject
 {
+    private const string CalculatorPage = "Calculator";
+    private const string ConverterPage = "Converter";
+    private const string SettingsPage = "Settings";
     private const string StandardMode = "Standard";
     private const string ScientificMode = "Scientific";
-    private const string ConverterMode = "Converters";
-    private const string CalculatorsSection = "Calculators";
-    private const string ConvertersSection = "Converters";
-    private const string SettingsSection = "Settings";
+    private const string NumberConverterKey = "Number";
+    private const string MemoryConverterKey = "Memory";
+    private const string WeightConverterKey = "Weight";
+    private const string VolumeConverterKey = "Volume";
+    private const string EnergyConverterKey = "Energy";
+    private const string LengthConverterKey = "Length";
+    private const string NumberConverterDefaultStatus = "Type in any number field to update the other bases.";
+    private const string MemoryConverterDefaultStatus = "Type in any memory field to update the other units.";
+    private const string WeightConverterDefaultStatus = "Type in any weight field to update the other units.";
+    private const string VolumeConverterDefaultStatus = "Type in any volume field to update the other units.";
+    private const string EnergyConverterDefaultStatus = "Type in any power or energy field to update the other units.";
+    private const string LengthConverterDefaultStatus = "Type in any length field to update the other units.";
+
+    private static readonly IReadOnlyList<string> NumberConverterUnits = ["Binary", "Octal", "Decimal", "Hexadecimal"];
+    private static readonly IReadOnlyList<string> MemoryConverterUnits = ["B", "KB", "MB", "GB", "TB"];
+    private static readonly IReadOnlyList<string> WeightConverterUnits = ["mg", "g", "kg", "t", "oz", "lb", "st"];
+    private static readonly IReadOnlyList<string> VolumeConverterUnits = ["ml", "cl", "dl", "l", "m³", "tsp", "tbsp", "fl oz", "cup", "pt", "qt", "gal"];
+    private static readonly IReadOnlyList<string> EnergyConverterUnits = ["J", "kJ", "MJ", "cal", "kcal", "Wh", "kWh", "eV", "BTU"];
+    private static readonly IReadOnlyList<string> LengthConverterUnits = ["mm", "cm", "dm", "m", "km", "in", "ft", "yd", "mi", "nmi"];
 
     private readonly CalculatorService _calculatorService;
     private readonly ConverterService _converterService;
@@ -25,19 +43,18 @@ public sealed class MainViewModel : ObservableObject
     private string _errorMessage = string.Empty;
     private int _caretIndex;
     private bool _isHistoryOpen;
-    private string _theme = "dark";
+    private string _selectedNavigationPage = CalculatorPage;
     private string _selectedCalculatorMode = StandardMode;
-    private string _selectedNavigationSection = CalculatorsSection;
-    private string _numberSystemInput = string.Empty;
-    private string _selectedNumberBase = "Binary";
-    private string _selectedNumberTargetBase = "Decimal";
-    private string _numberSystemOutput = "-";
-    private string _numberSystemStatus = "Enter a whole number to see all supported bases.";
-    private string _memoryInput = string.Empty;
-    private string _selectedMemoryUnit = "MB";
-    private string _selectedMemoryTargetUnit = "GB";
-    private string _memoryOutput = "-";
-    private string _memoryStatus = "Enter a value to convert memory sizes.";
+    private string? _activeConverterKey;
+    private string _theme = "dark";
+    private bool _liveCalculationEnabled = true;
+    private bool _suppressLiveCalculation;
+    private string _numberConverterStatus = NumberConverterDefaultStatus;
+    private string _memoryConverterStatus = MemoryConverterDefaultStatus;
+    private string _weightConverterStatus = WeightConverterDefaultStatus;
+    private string _volumeConverterStatus = VolumeConverterDefaultStatus;
+    private string _energyConverterStatus = EnergyConverterDefaultStatus;
+    private string _lengthConverterStatus = LengthConverterDefaultStatus;
 
     public MainViewModel(
         CalculatorService calculatorService,
@@ -55,15 +72,19 @@ public sealed class MainViewModel : ObservableObject
         EvaluateCommand = new RelayCommand(async _ => await EvaluateAsync());
         ClearCommand = new RelayCommand(_ => Clear());
         BackspaceCommand = new RelayCommand(_ => DeleteBackward());
-        ToggleThemeCommand = new RelayCommand(async _ => await ToggleThemeAsync());
         ToggleHistoryCommand = new RelayCommand(_ => IsHistoryOpen = !IsHistoryOpen);
-        SetCalculatorModeCommand = new RelayCommand(mode => SetCalculatorMode(mode as string));
-        SetNavigationSectionCommand = new RelayCommand(section => SetNavigationSection(section as string));
+        CloseHistoryCommand = new RelayCommand(_ => IsHistoryOpen = false, _ => IsHistoryOpen);
+        SetNavigationPageCommand = new RelayCommand(page => SetNavigationPage(page as string));
+        SetCalculatorModeCommand = new RelayCommand(mode => SelectedCalculatorMode = mode as string ?? StandardMode);
+        OpenConverterCommand = new RelayCommand(converterKey => OpenConverter(converterKey as string));
+        CloseConverterCommand = new RelayCommand(_ => ActiveConverterKey = null, _ => HasActiveConverter);
         DeleteHistoryEntryCommand = new RelayCommand(async item => await DeleteHistoryEntryAsync(item as CalculationHistoryItem));
         LoadHistoryEntryCommand = new RelayCommand(item => LoadHistoryEntry(item as CalculationHistoryItem));
         CopyHistoryExpressionCommand = new RelayCommand(item => CopyHistoryExpression(item as CalculationHistoryItem));
         CopyHistoryResultCommand = new RelayCommand(item => CopyHistoryResult(item as CalculationHistoryItem));
         ClearHistoryCommand = new RelayCommand(async _ => await ClearHistoryAsync(), _ => History.HasEntries);
+        SetThemeCommand = new RelayCommand(async theme => await SetThemeAsync(theme as string));
+        SetLiveCalculationCommand = new RelayCommand(async value => await SetLiveCalculationAsync(value));
 
         BuildStandardKeys();
         BuildScientificKeys();
@@ -74,22 +95,19 @@ public sealed class MainViewModel : ObservableObject
 
     public ObservableCollection<CalcKey> ScientificKeys { get; } = [];
 
-    public ObservableCollection<string> NumberBaseOptions { get; } =
-    [
-        "Binary",
-        "Octal",
-        "Decimal",
-        "Hexadecimal"
-    ];
+    public ObservableCollection<string> CalculatorModeOptions { get; } = [StandardMode, ScientificMode];
 
-    public ObservableCollection<string> MemoryUnitOptions { get; } =
-    [
-        "B",
-        "KB",
-        "MB",
-        "GB",
-        "TB"
-    ];
+    public ObservableCollection<ConverterFieldViewModel> NumberConverterFields { get; } = [];
+
+    public ObservableCollection<ConverterFieldViewModel> MemoryConverterFields { get; } = [];
+
+    public ObservableCollection<ConverterFieldViewModel> WeightConverterFields { get; } = [];
+
+    public ObservableCollection<ConverterFieldViewModel> VolumeConverterFields { get; } = [];
+
+    public ObservableCollection<ConverterFieldViewModel> EnergyConverterFields { get; } = [];
+
+    public ObservableCollection<ConverterFieldViewModel> LengthConverterFields { get; } = [];
 
     public HistoryViewModel History { get; }
 
@@ -99,13 +117,17 @@ public sealed class MainViewModel : ObservableObject
 
     public RelayCommand BackspaceCommand { get; }
 
-    public RelayCommand ToggleThemeCommand { get; }
-
     public RelayCommand ToggleHistoryCommand { get; }
+
+    public RelayCommand CloseHistoryCommand { get; }
+
+    public RelayCommand SetNavigationPageCommand { get; }
 
     public RelayCommand SetCalculatorModeCommand { get; }
 
-    public RelayCommand SetNavigationSectionCommand { get; }
+    public RelayCommand OpenConverterCommand { get; }
+
+    public RelayCommand CloseConverterCommand { get; }
 
     public RelayCommand DeleteHistoryEntryCommand { get; }
 
@@ -117,6 +139,10 @@ public sealed class MainViewModel : ObservableObject
 
     public RelayCommand ClearHistoryCommand { get; }
 
+    public RelayCommand SetThemeCommand { get; }
+
+    public RelayCommand SetLiveCalculationCommand { get; }
+
     public string Expression
     {
         get => _expression;
@@ -127,14 +153,23 @@ public sealed class MainViewModel : ObservableObject
                 return;
             }
 
-            if (!string.IsNullOrWhiteSpace(ErrorMessage))
-            {
-                ErrorMessage = string.Empty;
-            }
-
             if (_caretIndex > _expression.Length)
             {
                 CaretIndex = _expression.Length;
+            }
+
+            if (_suppressLiveCalculation)
+            {
+                return;
+            }
+
+            if (IsLiveCalculationEnabled)
+            {
+                EvaluateLiveExpression();
+            }
+            else if (!string.IsNullOrWhiteSpace(ErrorMessage))
+            {
+                ErrorMessage = string.Empty;
             }
         }
     }
@@ -172,21 +207,52 @@ public sealed class MainViewModel : ObservableObject
     public bool IsHistoryOpen
     {
         get => _isHistoryOpen;
-        set => SetProperty(ref _isHistoryOpen, value);
+        set
+        {
+            if (SetProperty(ref _isHistoryOpen, value))
+            {
+                CloseHistoryCommand.RaiseCanExecuteChanged();
+            }
+        }
     }
+
+    public string SelectedNavigationPage
+    {
+        get => _selectedNavigationPage;
+        private set
+        {
+            var normalized = NormalizeNavigationPage(value);
+            if (!SetProperty(ref _selectedNavigationPage, normalized))
+            {
+                return;
+            }
+
+            OnPropertyChanged(nameof(IsCalculatorPage));
+            OnPropertyChanged(nameof(IsConverterPage));
+            OnPropertyChanged(nameof(IsSettingsPage));
+            OnPropertyChanged(nameof(IsConverterSelectionVisible));
+        }
+    }
+
+    public bool IsCalculatorPage => SelectedNavigationPage == CalculatorPage;
+
+    public bool IsConverterPage => SelectedNavigationPage == ConverterPage;
+
+    public bool IsSettingsPage => SelectedNavigationPage == SettingsPage;
 
     public string SelectedCalculatorMode
     {
         get => _selectedCalculatorMode;
-        private set
+        set
         {
-            if (SetProperty(ref _selectedCalculatorMode, value))
+            var normalized = NormalizeCalculatorMode(value);
+            if (!SetProperty(ref _selectedCalculatorMode, normalized))
             {
-                OnPropertyChanged(nameof(IsStandardMode));
-                OnPropertyChanged(nameof(IsScientificMode));
-                OnPropertyChanged(nameof(IsConvertersMode));
-                OnPropertyChanged(nameof(IsCalculatorMode));
+                return;
             }
+
+            OnPropertyChanged(nameof(IsStandardMode));
+            OnPropertyChanged(nameof(IsScientificMode));
         }
     }
 
@@ -194,156 +260,258 @@ public sealed class MainViewModel : ObservableObject
 
     public bool IsScientificMode => SelectedCalculatorMode == ScientificMode;
 
-    public bool IsConvertersMode => SelectedCalculatorMode == ConverterMode;
-
-    public bool IsCalculatorMode => !IsConvertersMode;
-
-    public string SelectedNavigationSection
+    public string? ActiveConverterKey
     {
-        get => _selectedNavigationSection;
+        get => _activeConverterKey;
         private set
         {
-            if (SetProperty(ref _selectedNavigationSection, value))
+            var normalized = NormalizeConverterKey(value);
+            if (!SetProperty(ref _activeConverterKey, normalized))
             {
-                OnPropertyChanged(nameof(IsCalculatorsSection));
-                OnPropertyChanged(nameof(IsConvertersSection));
-                OnPropertyChanged(nameof(IsSettingsSection));
+                return;
             }
+
+            OnPropertyChanged(nameof(HasActiveConverter));
+            OnPropertyChanged(nameof(IsConverterSelectionVisible));
+            OnPropertyChanged(nameof(ActiveConverterTitle));
+            OnPropertyChanged(nameof(IsNumberConverterActive));
+            OnPropertyChanged(nameof(IsMemoryConverterActive));
+            OnPropertyChanged(nameof(IsWeightConverterActive));
+            OnPropertyChanged(nameof(IsVolumeConverterActive));
+            OnPropertyChanged(nameof(IsEnergyConverterActive));
+            OnPropertyChanged(nameof(IsLengthConverterActive));
+            CloseConverterCommand.RaiseCanExecuteChanged();
         }
     }
 
-    public bool IsCalculatorsSection => SelectedNavigationSection == CalculatorsSection;
+    public bool HasActiveConverter => !string.IsNullOrWhiteSpace(ActiveConverterKey);
 
-    public bool IsConvertersSection => SelectedNavigationSection == ConvertersSection;
+    public bool IsConverterSelectionVisible => IsConverterPage && !HasActiveConverter;
 
-    public bool IsSettingsSection => SelectedNavigationSection == SettingsSection;
+    public bool IsNumberConverterActive => ActiveConverterKey == NumberConverterKey;
 
-    public string NumberSystemInput
-    {
-        get => _numberSystemInput;
-        set
+    public bool IsMemoryConverterActive => ActiveConverterKey == MemoryConverterKey;
+
+    public bool IsWeightConverterActive => ActiveConverterKey == WeightConverterKey;
+
+    public bool IsVolumeConverterActive => ActiveConverterKey == VolumeConverterKey;
+
+    public bool IsEnergyConverterActive => ActiveConverterKey == EnergyConverterKey;
+
+    public bool IsLengthConverterActive => ActiveConverterKey == LengthConverterKey;
+
+    public string ActiveConverterTitle =>
+        ActiveConverterKey switch
         {
-            if (SetProperty(ref _numberSystemInput, value ?? string.Empty))
-            {
-                UpdateNumberSystemResults();
-            }
-        }
-    }
-
-    public string SelectedNumberBase
-    {
-        get => _selectedNumberBase;
-        set
-        {
-            if (SetProperty(ref _selectedNumberBase, value))
-            {
-                UpdateNumberSystemResults();
-            }
-        }
-    }
-
-    public string SelectedNumberTargetBase
-    {
-        get => _selectedNumberTargetBase;
-        set
-        {
-            if (SetProperty(ref _selectedNumberTargetBase, value))
-            {
-                UpdateNumberSystemResults();
-            }
-        }
-    }
-
-    public string NumberSystemOutput
-    {
-        get => _numberSystemOutput;
-        private set => SetProperty(ref _numberSystemOutput, value);
-    }
-
-    public string NumberSystemStatus
-    {
-        get => _numberSystemStatus;
-        private set => SetProperty(ref _numberSystemStatus, value);
-    }
-
-    public string MemoryInput
-    {
-        get => _memoryInput;
-        set
-        {
-            if (SetProperty(ref _memoryInput, value ?? string.Empty))
-            {
-                UpdateMemoryResults();
-            }
-        }
-    }
-
-    public string SelectedMemoryUnit
-    {
-        get => _selectedMemoryUnit;
-        set
-        {
-            if (SetProperty(ref _selectedMemoryUnit, value))
-            {
-                UpdateMemoryResults();
-            }
-        }
-    }
-
-    public string SelectedMemoryTargetUnit
-    {
-        get => _selectedMemoryTargetUnit;
-        set
-        {
-            if (SetProperty(ref _selectedMemoryTargetUnit, value))
-            {
-                UpdateMemoryResults();
-            }
-        }
-    }
-
-    public string MemoryOutput
-    {
-        get => _memoryOutput;
-        private set => SetProperty(ref _memoryOutput, value);
-    }
-
-    public string MemoryStatus
-    {
-        get => _memoryStatus;
-        private set => SetProperty(ref _memoryStatus, value);
-    }
+            NumberConverterKey => "Number Converter",
+            MemoryConverterKey => "Memory Converter",
+            WeightConverterKey => "Weight Converter",
+            VolumeConverterKey => "Volume Converter",
+            EnergyConverterKey => "Power / Energy Converter",
+            LengthConverterKey => "Length Converter",
+            _ => "Converters"
+        };
 
     public string Theme
     {
         get => _theme;
         private set
         {
-            if (SetProperty(ref _theme, value))
+            var normalized = NormalizeTheme(value);
+            if (!SetProperty(ref _theme, normalized))
             {
-                OnPropertyChanged(nameof(ThemeToggleGlyph));
-                OnPropertyChanged(nameof(ThemeToggleToolTip));
+                return;
             }
+
+            OnPropertyChanged(nameof(IsDarkTheme));
+            OnPropertyChanged(nameof(IsLightTheme));
         }
     }
 
-    public string ThemeToggleGlyph => Theme == "dark" ? "\u2600" : "\u263E";
+    public bool IsDarkTheme => Theme == "dark";
 
-    public string ThemeToggleToolTip => Theme == "dark" ? "Switch to light theme" : "Switch to dark theme";
+    public bool IsLightTheme => Theme == "light";
+
+    public bool IsLiveCalculationEnabled
+    {
+        get => _liveCalculationEnabled;
+        private set
+        {
+            if (!SetProperty(ref _liveCalculationEnabled, value))
+            {
+                return;
+            }
+
+            OnPropertyChanged(nameof(IsLiveCalculationDisabled));
+        }
+    }
+
+    public bool IsLiveCalculationDisabled => !IsLiveCalculationEnabled;
+
+    public string NumberConverterStatus
+    {
+        get => _numberConverterStatus;
+        private set => SetProperty(ref _numberConverterStatus, value);
+    }
+
+    public string MemoryConverterStatus
+    {
+        get => _memoryConverterStatus;
+        private set => SetProperty(ref _memoryConverterStatus, value);
+    }
+
+    public string WeightConverterStatus
+    {
+        get => _weightConverterStatus;
+        private set => SetProperty(ref _weightConverterStatus, value);
+    }
+
+    public string VolumeConverterStatus
+    {
+        get => _volumeConverterStatus;
+        private set => SetProperty(ref _volumeConverterStatus, value);
+    }
+
+    public string EnergyConverterStatus
+    {
+        get => _energyConverterStatus;
+        private set => SetProperty(ref _energyConverterStatus, value);
+    }
+
+    public string LengthConverterStatus
+    {
+        get => _lengthConverterStatus;
+        private set => SetProperty(ref _lengthConverterStatus, value);
+    }
 
     public async Task InitializeAsync(UserSettings settings)
     {
         Theme = settings.Theme;
+        IsLiveCalculationEnabled = settings.LiveCalculationEnabled;
 
         var historyItems = await _historyService.LoadAsync();
         History.SetEntries(historyItems);
         ClearHistoryCommand.RaiseCanExecuteChanged();
+
+        if (IsLiveCalculationEnabled)
+        {
+            EvaluateLiveExpression();
+        }
     }
 
     private void InitializeConverters()
     {
-        UpdateNumberSystemResults();
-        UpdateMemoryResults();
+        PopulateFields(NumberConverterFields, NumberConverterUnits, UpdateNumberConverterFields);
+        PopulateFields(MemoryConverterFields, MemoryConverterUnits, (field, value) =>
+            UpdateMeasurementConverterFields(field, value, MeasurementConverterKind.Memory, MemoryConverterFields, MemoryConverterDefaultStatus, status => MemoryConverterStatus = status));
+        PopulateFields(WeightConverterFields, WeightConverterUnits, (field, value) =>
+            UpdateMeasurementConverterFields(field, value, MeasurementConverterKind.Weight, WeightConverterFields, WeightConverterDefaultStatus, status => WeightConverterStatus = status));
+        PopulateFields(VolumeConverterFields, VolumeConverterUnits, (field, value) =>
+            UpdateMeasurementConverterFields(field, value, MeasurementConverterKind.Volume, VolumeConverterFields, VolumeConverterDefaultStatus, status => VolumeConverterStatus = status));
+        PopulateFields(EnergyConverterFields, EnergyConverterUnits, (field, value) =>
+            UpdateMeasurementConverterFields(field, value, MeasurementConverterKind.Energy, EnergyConverterFields, EnergyConverterDefaultStatus, status => EnergyConverterStatus = status));
+        PopulateFields(LengthConverterFields, LengthConverterUnits, (field, value) =>
+            UpdateMeasurementConverterFields(field, value, MeasurementConverterKind.Length, LengthConverterFields, LengthConverterDefaultStatus, status => LengthConverterStatus = status));
+
+        NumberConverterStatus = NumberConverterDefaultStatus;
+        MemoryConverterStatus = MemoryConverterDefaultStatus;
+        WeightConverterStatus = WeightConverterDefaultStatus;
+        VolumeConverterStatus = VolumeConverterDefaultStatus;
+        EnergyConverterStatus = EnergyConverterDefaultStatus;
+        LengthConverterStatus = LengthConverterDefaultStatus;
+    }
+
+    private static void PopulateFields(
+        ObservableCollection<ConverterFieldViewModel> fields,
+        IEnumerable<string> unitLabels,
+        Action<ConverterFieldViewModel, string> valueChangedCallback)
+    {
+        fields.Clear();
+
+        foreach (var unitLabel in unitLabels)
+        {
+            fields.Add(new ConverterFieldViewModel(unitLabel, unitLabel, valueChangedCallback));
+        }
+    }
+
+    private void UpdateNumberConverterFields(ConverterFieldViewModel sourceField, string value)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            ClearOtherFields(NumberConverterFields, sourceField);
+            NumberConverterStatus = NumberConverterDefaultStatus;
+            return;
+        }
+
+        try
+        {
+            foreach (var field in NumberConverterFields)
+            {
+                if (ReferenceEquals(field, sourceField))
+                {
+                    continue;
+                }
+
+                field.SetValueSilently(_converterService.ConvertNumberSystem(value, sourceField.UnitKey, field.UnitKey));
+            }
+
+            NumberConverterStatus = $"Converted from {sourceField.Label}.";
+        }
+        catch (CalculationException ex)
+        {
+            ClearOtherFields(NumberConverterFields, sourceField);
+            NumberConverterStatus = ex.Message;
+        }
+    }
+
+    private void UpdateMeasurementConverterFields(
+        ConverterFieldViewModel sourceField,
+        string value,
+        MeasurementConverterKind converterKind,
+        IReadOnlyList<ConverterFieldViewModel> allFields,
+        string defaultStatus,
+        Action<string> setStatus)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            ClearOtherFields(allFields, sourceField);
+            setStatus(defaultStatus);
+            return;
+        }
+
+        try
+        {
+            var parsedValue = _converterService.ParseMeasurementInput(value, converterKind);
+
+            foreach (var field in allFields)
+            {
+                if (ReferenceEquals(field, sourceField))
+                {
+                    continue;
+                }
+
+                var converted = _converterService.ConvertMeasurement(parsedValue, converterKind, sourceField.UnitKey, field.UnitKey);
+                field.SetValueSilently(_converterService.FormatMeasurementValue(converted));
+            }
+
+            setStatus($"Converted from {sourceField.Label}.");
+        }
+        catch (CalculationException ex)
+        {
+            ClearOtherFields(allFields, sourceField);
+            setStatus(ex.Message);
+        }
+    }
+
+    private static void ClearOtherFields(IReadOnlyList<ConverterFieldViewModel> fields, ConverterFieldViewModel sourceField)
+    {
+        foreach (var field in fields)
+        {
+            if (!ReferenceEquals(field, sourceField))
+            {
+                field.SetValueSilently(string.Empty);
+            }
+        }
     }
 
     private void BuildScientificKeys()
@@ -447,85 +615,6 @@ public sealed class MainViewModel : ObservableObject
         });
     }
 
-    private void SetCalculatorMode(string? mode)
-    {
-        if (string.Equals(mode, ScientificMode, StringComparison.OrdinalIgnoreCase))
-        {
-            SelectedCalculatorMode = ScientificMode;
-            SelectedNavigationSection = CalculatorsSection;
-            return;
-        }
-
-        if (string.Equals(mode, ConverterMode, StringComparison.OrdinalIgnoreCase))
-        {
-            SelectedCalculatorMode = ConverterMode;
-            SelectedNavigationSection = ConvertersSection;
-            return;
-        }
-
-        SelectedCalculatorMode = StandardMode;
-        SelectedNavigationSection = CalculatorsSection;
-    }
-
-    private void SetNavigationSection(string? section)
-    {
-        if (string.Equals(section, ConvertersSection, StringComparison.OrdinalIgnoreCase))
-        {
-            SelectedNavigationSection = ConvertersSection;
-            return;
-        }
-
-        if (string.Equals(section, SettingsSection, StringComparison.OrdinalIgnoreCase))
-        {
-            SelectedNavigationSection = SettingsSection;
-            return;
-        }
-
-        SelectedNavigationSection = CalculatorsSection;
-    }
-
-    private void UpdateNumberSystemResults()
-    {
-        if (string.IsNullOrWhiteSpace(NumberSystemInput))
-        {
-            NumberSystemOutput = "-";
-            NumberSystemStatus = "Enter a whole number to see all supported bases.";
-            return;
-        }
-
-        try
-        {
-            NumberSystemOutput = _converterService.ConvertNumberSystem(NumberSystemInput, SelectedNumberBase, SelectedNumberTargetBase);
-            NumberSystemStatus = $"Converting from {SelectedNumberBase} to {SelectedNumberTargetBase}.";
-        }
-        catch (CalculationException ex)
-        {
-            NumberSystemOutput = "-";
-            NumberSystemStatus = ex.Message;
-        }
-    }
-
-    private void UpdateMemoryResults()
-    {
-        if (string.IsNullOrWhiteSpace(MemoryInput))
-        {
-            MemoryOutput = "-";
-            MemoryStatus = "Enter a value to convert memory sizes.";
-            return;
-        }
-
-        try
-        {
-            MemoryOutput = _converterService.ConvertMemorySize(MemoryInput, SelectedMemoryUnit, SelectedMemoryTargetUnit);
-            MemoryStatus = $"Converting from {SelectedMemoryUnit} to {SelectedMemoryTargetUnit} using 1024-based units.";
-        }
-        catch (CalculationException ex)
-        {
-            MemoryOutput = "-";
-            MemoryStatus = ex.Message;
-        }
-    }
-
     private async Task EvaluateAsync()
     {
         var expression = Expression.Trim();
@@ -562,6 +651,29 @@ public sealed class MainViewModel : ObservableObject
         }
     }
 
+    private void EvaluateLiveExpression()
+    {
+        var expression = Expression.Trim();
+
+        if (string.IsNullOrWhiteSpace(expression))
+        {
+            Result = "0";
+            ErrorMessage = string.Empty;
+            return;
+        }
+
+        try
+        {
+            var value = _calculatorService.Evaluate(expression, _lastResult);
+            Result = _calculatorService.FormatResult(value);
+            ErrorMessage = string.Empty;
+        }
+        catch (CalculationException ex)
+        {
+            ErrorMessage = ex.Message;
+        }
+    }
+
     private void Clear()
     {
         Expression = string.Empty;
@@ -591,11 +703,68 @@ public sealed class MainViewModel : ObservableObject
         CaretIndex = removeStart;
     }
 
-    private async Task ToggleThemeAsync()
+    private void SetNavigationPage(string? page)
     {
-        Theme = Theme == "dark" ? "light" : "dark";
+        SelectedNavigationPage = page ?? CalculatorPage;
+        ActiveConverterKey = null;
+        IsHistoryOpen = false;
+    }
+
+    private void OpenConverter(string? converterKey)
+    {
+        SelectedNavigationPage = ConverterPage;
+        ActiveConverterKey = converterKey;
+        IsHistoryOpen = false;
+    }
+
+    private async Task SetThemeAsync(string? theme)
+    {
+        var normalized = NormalizeTheme(theme);
+        if (Theme == normalized)
+        {
+            return;
+        }
+
+        Theme = normalized;
         App.ApplyTheme(Theme);
-        await _settingsService.SaveAsync(new UserSettings { Theme = Theme });
+        await SaveCurrentSettingsAsync();
+    }
+
+    private async Task SetLiveCalculationAsync(object? value)
+    {
+        var isEnabled = value switch
+        {
+            bool booleanValue => booleanValue,
+            string stringValue when bool.TryParse(stringValue, out var parsedValue) => parsedValue,
+            _ => IsLiveCalculationEnabled
+        };
+
+        if (IsLiveCalculationEnabled == isEnabled)
+        {
+            return;
+        }
+
+        IsLiveCalculationEnabled = isEnabled;
+
+        if (IsLiveCalculationEnabled)
+        {
+            EvaluateLiveExpression();
+        }
+        else
+        {
+            ErrorMessage = string.Empty;
+        }
+
+        await SaveCurrentSettingsAsync();
+    }
+
+    private async Task SaveCurrentSettingsAsync()
+    {
+        await _settingsService.SaveAsync(new UserSettings
+        {
+            Theme = Theme,
+            LiveCalculationEnabled = IsLiveCalculationEnabled
+        });
     }
 
     private async Task DeleteHistoryEntryAsync(CalculationHistoryItem? item)
@@ -612,7 +781,10 @@ public sealed class MainViewModel : ObservableObject
             return;
         }
 
+        _suppressLiveCalculation = true;
         Expression = item.Expression;
+        _suppressLiveCalculation = false;
+
         Result = item.Result;
         ErrorMessage = string.Empty;
         CaretIndex = Expression.Length;
@@ -864,6 +1036,71 @@ public sealed class MainViewModel : ObservableObject
         var hasWhitespaceAfter = index + 1 < Expression.Length && char.IsWhiteSpace(Expression[index + 1]);
         return hasWhitespaceBefore && hasWhitespaceAfter;
     }
+
+    private static string NormalizeNavigationPage(string? value)
+    {
+        if (string.Equals(value, ConverterPage, StringComparison.OrdinalIgnoreCase))
+        {
+            return ConverterPage;
+        }
+
+        if (string.Equals(value, SettingsPage, StringComparison.OrdinalIgnoreCase))
+        {
+            return SettingsPage;
+        }
+
+        return CalculatorPage;
+    }
+
+    private static string NormalizeCalculatorMode(string? value) =>
+        string.Equals(value, ScientificMode, StringComparison.OrdinalIgnoreCase)
+            ? ScientificMode
+            : StandardMode;
+
+    private static string? NormalizeConverterKey(string? value)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            return null;
+        }
+
+        if (string.Equals(value, NumberConverterKey, StringComparison.OrdinalIgnoreCase))
+        {
+            return NumberConverterKey;
+        }
+
+        if (string.Equals(value, MemoryConverterKey, StringComparison.OrdinalIgnoreCase))
+        {
+            return MemoryConverterKey;
+        }
+
+        if (string.Equals(value, WeightConverterKey, StringComparison.OrdinalIgnoreCase))
+        {
+            return WeightConverterKey;
+        }
+
+        if (string.Equals(value, VolumeConverterKey, StringComparison.OrdinalIgnoreCase))
+        {
+            return VolumeConverterKey;
+        }
+
+        if (string.Equals(value, EnergyConverterKey, StringComparison.OrdinalIgnoreCase))
+        {
+            return EnergyConverterKey;
+        }
+
+        if (string.Equals(value, LengthConverterKey, StringComparison.OrdinalIgnoreCase))
+        {
+            return LengthConverterKey;
+        }
+
+        return null;
+    }
+
+    private static string NormalizeTheme(string? theme) =>
+        string.Equals(theme, "light", StringComparison.OrdinalIgnoreCase)
+            ? "light"
+            : "dark";
 
     private static bool IsBinaryOperator(char value) => value is '+' or '-' or '*' or '/' or '^';
 }

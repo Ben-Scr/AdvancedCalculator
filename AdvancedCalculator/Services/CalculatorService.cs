@@ -1,6 +1,6 @@
 using System.Globalization;
 
-namespace AdvancedCalculator.Services;
+namespace BenScr.AdvancedCalculator.Services;
 
 public sealed class CalculatorService
 {
