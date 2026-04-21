@@ -13,4 +13,6 @@ public sealed class CalcKey
     public bool IsAccent { get; init; }
 
     public bool IsEnabled { get; init; } = true;
+
+    public bool IsPlaceholder { get; init; }
 }

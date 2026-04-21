@@ -15,10 +15,11 @@ public partial class App : Application
         base.OnStartup(e);
 
         var calculatorService = new CalculatorService();
+        var converterService = new ConverterService();
         var historyService = new HistoryService();
         var settingsService = new SettingsService();
         var historyViewModel = new HistoryViewModel();
-        var mainViewModel = new MainViewModel(calculatorService, historyService, settingsService, historyViewModel);
+        var mainViewModel = new MainViewModel(calculatorService, converterService, historyService, settingsService, historyViewModel);
 
         await historyService.EnsureBootstrapAsync();
         var settings = await settingsService.LoadAsync();

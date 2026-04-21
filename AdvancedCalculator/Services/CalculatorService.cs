@@ -83,10 +83,10 @@ public sealed class CalculatorService
 
         if (suggestion is not null && suggestion.Distance <= 2)
         {
-            return $"Unbekannte Funktion: '{functionName}'. Meintest du '{suggestion.Candidate}'?";
+            return $"Unknown function: '{functionName}'. Did you mean '{suggestion.Candidate}'?";
         }
 
-        return $"Unbekannte Funktion: '{functionName}'.";
+        return $"Unknown function: '{functionName}'.";
     }
 
     private static void EnsureFinite(double value, string? functionName = null)
@@ -97,8 +97,8 @@ public sealed class CalculatorService
         }
 
         throw new CalculationException(functionName is null
-            ? "Ergebnis ist nicht definiert."
-            : $"Ungültiger Wert für '{functionName}'.");
+            ? "Result is not defined."
+            : $"Invalid value for '{functionName}'.");
     }
 
     private static double ApplyFunction(string functionName, IReadOnlyList<double> arguments)
@@ -114,9 +114,9 @@ public sealed class CalculatorService
 
             var expected = validArities.Length == 1
                 ? validArities[0].ToString(CultureInfo.InvariantCulture)
-                : string.Join(" oder ", validArities.Select(static value => value.ToString(CultureInfo.InvariantCulture)));
+                : string.Join(" or ", validArities.Select(static value => value.ToString(CultureInfo.InvariantCulture)));
 
-            throw new CalculationException($"Funktion '{functionName}' erwartet {expected} Argument(e).");
+            throw new CalculationException($"Function '{functionName}' expects {expected} argument(s).");
         }
 
         double result = name switch
@@ -128,7 +128,7 @@ public sealed class CalculatorService
             {
                 if (value is < -1d or > 1d)
                 {
-                    throw new CalculationException($"Ungültiger Wert für '{functionName}'.");
+                    throw new CalculationException($"Invalid value for '{functionName}'.");
                 }
 
                 return Math.Asin(value);
@@ -137,7 +137,7 @@ public sealed class CalculatorService
             {
                 if (value is < -1d or > 1d)
                 {
-                    throw new CalculationException($"Ungültiger Wert für '{functionName}'.");
+                    throw new CalculationException($"Invalid value for '{functionName}'.");
                 }
 
                 return Math.Acos(value);
@@ -147,7 +147,7 @@ public sealed class CalculatorService
             {
                 if (value < 0d)
                 {
-                    throw new CalculationException($"Ungültiger Wert für '{functionName}'.");
+                    throw new CalculationException($"Invalid value for '{functionName}'.");
                 }
 
                 return Math.Sqrt(value);
@@ -157,7 +157,7 @@ public sealed class CalculatorService
             {
                 if (value <= 0d)
                 {
-                    throw new CalculationException($"Ungültiger Wert für '{functionName}'.");
+                    throw new CalculationException($"Invalid value for '{functionName}'.");
                 }
 
                 return Math.Log10(value);
@@ -184,7 +184,7 @@ public sealed class CalculatorService
         var digits = arguments[1];
         if (digits < 0d || digits > 15d || Math.Abs(digits - Math.Round(digits)) > 1e-9d)
         {
-            throw new CalculationException($"Ungültiger Wert für '{functionName}'.");
+            throw new CalculationException($"Invalid value for '{functionName}'.");
         }
 
         return Math.Round(arguments[0], (int)Math.Round(digits), MidpointRounding.AwayFromZero);
@@ -194,7 +194,7 @@ public sealed class CalculatorService
     {
         if (arguments[0] <= 0d)
         {
-            throw new CalculationException($"Ungültiger Wert für '{functionName}'.");
+            throw new CalculationException($"Invalid value for '{functionName}'.");
         }
 
         if (arguments.Count == 1)
@@ -204,7 +204,7 @@ public sealed class CalculatorService
 
         if (arguments[1] <= 0d || Math.Abs(arguments[1] - 1d) < 1e-12d)
         {
-            throw new CalculationException($"Ungültiger Wert für '{functionName}'.");
+            throw new CalculationException($"Invalid value for '{functionName}'.");
         }
 
         return Math.Log(arguments[0], arguments[1]);
@@ -239,10 +239,10 @@ public sealed class CalculatorService
             {
                 if (Current == ')')
                 {
-                    throw new CalculationException("Unerwartete schließende Klammer ')'.");
+                    throw new CalculationException("Unexpected closing parenthesis ')'.");
                 }
 
-                throw new CalculationException($"Unerwartetes Zeichen: '{Current}'.");
+                throw new CalculationException($"Unexpected character: '{Current}'.");
             }
 
             EnsureFinite(value);
@@ -297,7 +297,7 @@ public sealed class CalculatorService
                     var divisor = ParseUnary();
                     if (Math.Abs(divisor) < 1e-12d)
                     {
-                        throw new CalculationException("Division durch 0 ist nicht erlaubt.");
+                        throw new CalculationException("Division by 0 is not allowed.");
                     }
 
                     left /= divisor;
@@ -365,7 +365,7 @@ public sealed class CalculatorService
 
             if (IsAtEnd)
             {
-                throw new CalculationException("Der Ausdruck ist unvollständig.");
+                throw new CalculationException("The expression is incomplete.");
             }
 
             if (Match('('))
@@ -375,7 +375,7 @@ public sealed class CalculatorService
 
                 if (!Match(')'))
                 {
-                    throw new CalculationException("Fehlende schließende Klammer ')'.");
+                    throw new CalculationException("Missing closing parenthesis ')'.");
                 }
 
                 return value;
@@ -383,7 +383,7 @@ public sealed class CalculatorService
 
             if (Current == ')')
             {
-                throw new CalculationException("Unerwartete schließende Klammer ')'.");
+                throw new CalculationException("Unexpected closing parenthesis ')'.");
             }
 
             if (char.IsDigit(Current) || Current == '.')
@@ -396,7 +396,7 @@ public sealed class CalculatorService
                 return ParseIdentifier();
             }
 
-            throw new CalculationException($"Unerwartetes Zeichen: '{Current}'.");
+            throw new CalculationException($"Unexpected character: '{Current}'.");
         }
 
         private double ParseNumber()
@@ -417,7 +417,7 @@ public sealed class CalculatorService
                         }
 
                         var invalidNumber = _expression[start.._position];
-                        throw new CalculationException($"Ungültige Zahl: '{invalidNumber}'.");
+                        throw new CalculationException($"Invalid number: '{invalidNumber}'.");
                     }
 
                     hasDot = true;
@@ -429,7 +429,7 @@ public sealed class CalculatorService
             var token = _expression[start.._position];
             if (token == "." || !double.TryParse(token, NumberStyles.Float, CultureInfo.InvariantCulture, out var value))
             {
-                throw new CalculationException($"Ungültige Zahl: '{token}'.");
+                throw new CalculationException($"Invalid number: '{token}'.");
             }
 
             return value;
@@ -471,7 +471,7 @@ public sealed class CalculatorService
 
                         if (!Match(','))
                         {
-                            throw new CalculationException("Fehlende schließende Klammer ')'.");
+                            throw new CalculationException("Missing closing parenthesis ')'.");
                         }
 
                         SkipWhiteSpace();
@@ -496,7 +496,7 @@ public sealed class CalculatorService
                 return _ans ?? 0d;
             }
 
-            throw new CalculationException($"Unbekannte Konstante oder Funktion: '{identifier}'.");
+            throw new CalculationException($"Unknown constant or function: '{identifier}'.");
         }
 
         private void SkipWhiteSpace()

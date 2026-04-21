@@ -11,6 +11,115 @@
         <Setter Property="Foreground" Value="{DynamicResource TextBrush}" />
     </Style>
 
+    <Style x:Key="CalculatorOnlyVisibilityStyle" TargetType="{x:Type FrameworkElement}">
+        <Setter Property="Visibility" Value="Visible" />
+        <Style.Triggers>
+            <DataTrigger Binding="{Binding IsConvertersMode}" Value="True">
+                <Setter Property="Visibility" Value="Collapsed" />
+            </DataTrigger>
+        </Style.Triggers>
+    </Style>
+
+    <Style x:Key="ConvertersOnlyVisibilityStyle" TargetType="{x:Type FrameworkElement}">
+        <Setter Property="Visibility" Value="Collapsed" />
+        <Style.Triggers>
+            <DataTrigger Binding="{Binding IsConvertersMode}" Value="True">
+                <Setter Property="Visibility" Value="Visible" />
+            </DataTrigger>
+        </Style.Triggers>
+    </Style>
+
+    <Style x:Key="CalculatorsSectionVisibilityStyle" TargetType="{x:Type FrameworkElement}">
+        <Setter Property="Visibility" Value="Collapsed" />
+        <Style.Triggers>
+            <DataTrigger Binding="{Binding IsCalculatorsSection}" Value="True">
+                <Setter Property="Visibility" Value="Visible" />
+            </DataTrigger>
+        </Style.Triggers>
+    </Style>
+
+    <Style x:Key="ConvertersSectionVisibilityStyle" TargetType="{x:Type FrameworkElement}">
+        <Setter Property="Visibility" Value="Collapsed" />
+        <Style.Triggers>
+            <DataTrigger Binding="{Binding IsConvertersSection}" Value="True">
+                <Setter Property="Visibility" Value="Visible" />
+            </DataTrigger>
+        </Style.Triggers>
+    </Style>
+
+    <Style x:Key="SettingsSectionVisibilityStyle" TargetType="{x:Type FrameworkElement}">
+        <Setter Property="Visibility" Value="Collapsed" />
+        <Style.Triggers>
+            <DataTrigger Binding="{Binding IsSettingsSection}" Value="True">
+                <Setter Property="Visibility" Value="Visible" />
+            </DataTrigger>
+        </Style.Triggers>
+    </Style>
+
+    <Style x:Key="GitHubScrollBarThumbStyle" TargetType="{x:Type Thumb}">
+        <Setter Property="OverridesDefaultStyle" Value="True" />
+        <Setter Property="IsTabStop" Value="False" />
+        <Setter Property="SnapsToDevicePixels" Value="True" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="{x:Type Thumb}">
+                    <Border x:Name="ThumbBody"
+                            Margin="2"
+                            CornerRadius="4"
+                            Background="{DynamicResource ScrollbarThumbBrush}" />
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="ThumbBody" Property="Background" Value="{DynamicResource ScrollbarThumbHoverBrush}" />
+                        </Trigger>
+                        <Trigger Property="IsDragging" Value="True">
+                            <Setter TargetName="ThumbBody" Property="Background" Value="{DynamicResource ScrollbarThumbPressedBrush}" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style x:Key="GitHubScrollBarStyle" TargetType="{x:Type ScrollBar}">
+        <Setter Property="SnapsToDevicePixels" Value="True" />
+        <Setter Property="Width" Value="12" />
+        <Setter Property="Background" Value="{DynamicResource ScrollbarTrackBrush}" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="{x:Type ScrollBar}">
+                    <Border Background="{TemplateBinding Background}"
+                            CornerRadius="6">
+                        <Track x:Name="PART_Track"
+                               IsDirectionReversed="True">
+                            <Track.Thumb>
+                                <Thumb Style="{StaticResource GitHubScrollBarThumbStyle}" />
+                            </Track.Thumb>
+                            <Track.DecreaseRepeatButton>
+                                <RepeatButton Command="ScrollBar.PageUpCommand"
+                                              Opacity="0"
+                                              Focusable="False" />
+                            </Track.DecreaseRepeatButton>
+                            <Track.IncreaseRepeatButton>
+                                <RepeatButton Command="ScrollBar.PageDownCommand"
+                                              Opacity="0"
+                                              Focusable="False" />
+                            </Track.IncreaseRepeatButton>
+                        </Track>
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="Orientation" Value="Horizontal">
+                            <Setter Property="Height" Value="12" />
+                            <Setter Property="Width" Value="Auto" />
+                            <Setter TargetName="PART_Track" Property="IsDirectionReversed" Value="False" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style TargetType="{x:Type ScrollBar}" BasedOn="{StaticResource GitHubScrollBarStyle}" />
+
     <Style TargetType="{x:Type controls:AnimatedButton}">
         <Setter Property="Foreground" Value="{DynamicResource TextBrush}" />
         <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}" />
@@ -50,38 +159,58 @@
         </Setter>
     </Style>
 
-    <Style x:Key="ToolbarButtonStyle"
+    <Style x:Key="TitleBarButtonStyle"
            TargetType="{x:Type controls:AnimatedButton}"
            BasedOn="{StaticResource {x:Type controls:AnimatedButton}}">
         <Setter Property="CornerRadius" Value="6" />
-        <Setter Property="Width" Value="34" />
+        <Setter Property="Width" Value="36" />
         <Setter Property="Height" Value="32" />
         <Setter Property="Padding" Value="0" />
-        <Setter Property="VerticalContentAlignment" Value="Center"/>
-        <Setter Property="HorizontalContentAlignment" Value="Center"/>
-        <Setter Property="FontSize" Value="14" />
+        <Setter Property="BorderThickness" Value="0" />
+        <Setter Property="VerticalContentAlignment" Value="Center" />
+        <Setter Property="HorizontalContentAlignment" Value="Center" />
+        <Setter Property="FontSize" Value="15" />
         <Setter Property="FontWeight" Value="SemiBold" />
-        <Setter Property="NormalColor" Value="{DynamicResource SurfaceColor}" />
+        <Setter Property="NormalColor" Value="Transparent" />
+        <Setter Property="HoverColor" Value="{DynamicResource SurfaceRaisedColor}" />
+        <Setter Property="PressedColor" Value="{DynamicResource SurfaceHoverColor}" />
+    </Style>
+
+    <Style x:Key="TitleBarSymbolButtonStyle"
+           TargetType="{x:Type controls:AnimatedButton}"
+           BasedOn="{StaticResource TitleBarButtonStyle}">
+        <Setter Property="FontFamily" Value="Segoe Fluent Icons" />
+        <Setter Property="FontSize" Value="11" />
+        <Setter Property="FontWeight" Value="Normal" />
+    </Style>
+
+    <Style x:Key="ToolbarSymbolButtonStyle"
+           TargetType="{x:Type controls:AnimatedButton}"
+           BasedOn="{StaticResource TitleBarSymbolButtonStyle}">
+        <Setter Property="Width" Value="40" />
+        <Setter Property="Height" Value="36" />
+        <Setter Property="CornerRadius" Value="8" />
+        <Setter Property="Padding" Value="0" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}" />
+        <Setter Property="NormalColor" Value="{DynamicResource SurfaceRaisedColor}" />
         <Setter Property="HoverColor" Value="{DynamicResource SurfaceHoverColor}" />
         <Setter Property="PressedColor" Value="{DynamicResource SurfacePressedColor}" />
     </Style>
 
     <Style x:Key="WindowCommandButtonStyle"
            TargetType="{x:Type controls:AnimatedButton}"
-           BasedOn="{StaticResource ToolbarButtonStyle}">
-        <Setter Property="Width" Value="42" />
-        <Setter Property="VerticalContentAlignment" Value="Center"/>
-        <Setter Property="HorizontalContentAlignment" Value="Center"/>
+           BasedOn="{StaticResource TitleBarSymbolButtonStyle}">
+        <Setter Property="Width" Value="40" />
+        <Setter Property="CornerRadius" Value="4" />
     </Style>
 
     <Style x:Key="CloseWindowButtonStyle"
            TargetType="{x:Type controls:AnimatedButton}"
            BasedOn="{StaticResource WindowCommandButtonStyle}">
-        <Setter Property="VerticalContentAlignment" Value="Center"/>
-        <Setter Property="HorizontalContentAlignment" Value="Center"/>
-        <Setter Property="Foreground" Value="White" />
-        <Setter Property="BorderBrush" Value="{DynamicResource DangerBrush}" />
-        <Setter Property="NormalColor" Value="{DynamicResource DangerColor}" />
+        <Setter Property="Foreground" Value="{DynamicResource TextBrush}" />
+        <Setter Property="BorderBrush" Value="Transparent" />
+        <Setter Property="NormalColor" Value="Transparent" />
         <Setter Property="HoverColor" Value="{DynamicResource DangerHoverColor}" />
         <Setter Property="PressedColor" Value="{DynamicResource DangerPressedColor}" />
     </Style>
@@ -91,12 +220,17 @@
            BasedOn="{StaticResource {x:Type controls:AnimatedButton}}">
         <Setter Property="CornerRadius" Value="6" />
         <Setter Property="Padding" Value="0" />
+        <Setter Property="HorizontalAlignment" Value="Stretch" />
+        <Setter Property="VerticalAlignment" Value="Stretch" />
         <Setter Property="FontSize" Value="14" />
         <Setter Property="FontWeight" Value="SemiBold" />
         <Setter Property="HorizontalContentAlignment" Value="Center" />
         <Setter Property="VerticalContentAlignment" Value="Center" />
-        <Setter Property="MinHeight" Value="52" />
         <Style.Triggers>
+            <DataTrigger Binding="{Binding IsPlaceholder}" Value="True">
+                <Setter Property="Visibility" Value="Hidden" />
+                <Setter Property="IsHitTestVisible" Value="False" />
+            </DataTrigger>
             <DataTrigger Binding="{Binding IsAccent}" Value="True">
                 <Setter Property="Foreground" Value="White" />
                 <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}" />
@@ -123,7 +257,7 @@
 
     <Style x:Key="DangerIconButtonStyle"
            TargetType="{x:Type controls:AnimatedButton}"
-           BasedOn="{StaticResource ToolbarButtonStyle}">
+           BasedOn="{StaticResource TitleBarSymbolButtonStyle}">
         <Setter Property="Foreground" Value="White" />
         <Setter Property="Width" Value="36" />
         <Setter Property="Height" Value="36" />
@@ -135,15 +269,57 @@
 
     <Style x:Key="FlatSidebarButtonStyle"
            TargetType="{x:Type controls:AnimatedButton}"
-           BasedOn="{StaticResource ToolbarButtonStyle}">
+           BasedOn="{StaticResource TitleBarButtonStyle}">
         <Setter Property="Width" Value="Auto" />
         <Setter Property="Height" Value="36" />
         <Setter Property="Padding" Value="14,0" />
         <Setter Property="HorizontalContentAlignment" Value="Center" />
+        <Setter Property="BorderThickness" Value="1" />
         <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}" />
         <Setter Property="NormalColor" Value="{DynamicResource SurfaceRaisedColor}" />
         <Setter Property="HoverColor" Value="{DynamicResource SurfaceHoverColor}" />
         <Setter Property="PressedColor" Value="{DynamicResource SurfacePressedColor}" />
+    </Style>
+
+    <Style x:Key="CalculatorTabButtonStyle"
+           TargetType="{x:Type controls:AnimatedButton}"
+           BasedOn="{StaticResource FlatSidebarButtonStyle}">
+        <Setter Property="Height" Value="38" />
+        <Setter Property="Padding" Value="18,0" />
+        <Setter Property="CornerRadius" Value="10" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+    </Style>
+
+    <Style x:Key="NavigationFlyoutButtonStyle"
+           TargetType="{x:Type controls:AnimatedButton}"
+           BasedOn="{StaticResource FlatSidebarButtonStyle}">
+        <Setter Property="Width" Value="Auto" />
+        <Setter Property="Height" Value="40" />
+        <Setter Property="Padding" Value="14,0" />
+        <Setter Property="BorderThickness" Value="0" />
+        <Setter Property="CornerRadius" Value="8" />
+        <Setter Property="HorizontalAlignment" Value="Stretch" />
+        <Setter Property="HorizontalContentAlignment" Value="Left" />
+    </Style>
+
+    <Style x:Key="NavigationCategoryButtonStyle"
+           TargetType="{x:Type controls:AnimatedButton}"
+           BasedOn="{StaticResource FlatSidebarButtonStyle}">
+        <Setter Property="Height" Value="34" />
+        <Setter Property="Padding" Value="12,0" />
+        <Setter Property="BorderThickness" Value="0" />
+        <Setter Property="CornerRadius" Value="9" />
+        <Setter Property="HorizontalContentAlignment" Value="Center" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+    </Style>
+
+    <Style x:Key="FlatComboBoxStyle" TargetType="{x:Type ComboBox}">
+        <Setter Property="Foreground" Value="{DynamicResource TextBrush}" />
+        <Setter Property="Background" Value="{DynamicResource SurfaceRaisedBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="Padding" Value="10,6" />
+        <Setter Property="MinHeight" Value="40" />
     </Style>
 
     <Style x:Key="ExpressionTextBoxStyle" TargetType="{x:Type TextBox}">

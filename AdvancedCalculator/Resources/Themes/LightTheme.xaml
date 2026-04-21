@@ -18,6 +18,10 @@
     <Color x:Key="SidebarShadowColor">#26000000</Color>
     <Color x:Key="ErrorBackgroundColor">#FFF1F0</Color>
     <Color x:Key="ErrorAccentColor">#CF222E</Color>
+    <Color x:Key="ScrollbarTrackColor">#F6F8FA</Color>
+    <Color x:Key="ScrollbarThumbColor">#D0D7DE</Color>
+    <Color x:Key="ScrollbarThumbHoverColor">#AFB8C1</Color>
+    <Color x:Key="ScrollbarThumbPressedColor">#8C959F</Color>
 
     <SolidColorBrush x:Key="AppBackgroundBrush" Color="{StaticResource AppBackgroundColor}" />
     <SolidColorBrush x:Key="SurfaceBrush" Color="{StaticResource SurfaceColor}" />
@@ -31,4 +35,8 @@
     <SolidColorBrush x:Key="ErrorBackgroundBrush" Color="{StaticResource ErrorBackgroundColor}" />
     <SolidColorBrush x:Key="ErrorAccentBrush" Color="{StaticResource ErrorAccentColor}" />
     <SolidColorBrush x:Key="SidebarShadowBrush" Color="{StaticResource SidebarShadowColor}" />
+    <SolidColorBrush x:Key="ScrollbarTrackBrush" Color="{StaticResource ScrollbarTrackColor}" />
+    <SolidColorBrush x:Key="ScrollbarThumbBrush" Color="{StaticResource ScrollbarThumbColor}" />
+    <SolidColorBrush x:Key="ScrollbarThumbHoverBrush" Color="{StaticResource ScrollbarThumbHoverColor}" />
+    <SolidColorBrush x:Key="ScrollbarThumbPressedBrush" Color="{StaticResource ScrollbarThumbPressedColor}" />
 </ResourceDictionary>

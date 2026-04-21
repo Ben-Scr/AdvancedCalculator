@@ -41,6 +41,7 @@
         <Grid>
             <Grid.RowDefinitions>
                 <RowDefinition Height="48" />
+                <RowDefinition Height="Auto" />
                 <RowDefinition Height="*" />
             </Grid.RowDefinitions>
 
@@ -68,31 +69,200 @@
                                 VerticalAlignment="Center"
                                 Margin="0,0,6,0"
                                 shell:WindowChrome.IsHitTestVisibleInChrome="True">
-                        <controls:AnimatedButton Style="{StaticResource ToolbarButtonStyle}"
-                                                 Command="{Binding ToggleHistoryCommand}"
-                                                 ToolTip="Verlauf ein- oder ausblenden"
-                                                 Margin="0,0,8,0"
-                                                 Content="&#x1F552;" />
-                        <controls:AnimatedButton Style="{StaticResource ToolbarButtonStyle}"
-                                                 Command="{Binding ToggleThemeCommand}"
-                                                 ToolTip="{Binding ThemeToggleToolTip}"
-                                                 Margin="0,0,12,0"
-                                                 Content="{Binding ThemeToggleGlyph}" />
                         <controls:AnimatedButton Style="{StaticResource WindowCommandButtonStyle}"
                                                  Click="Minimize_OnClick"
-                                                 Content="-" />
-                        <controls:AnimatedButton Style="{StaticResource WindowCommandButtonStyle}"
+                                                 ToolTip="Minimize"
+                                                 Content="&#xE921;" />
+                        <controls:AnimatedButton x:Name="MaximizeRestoreButton"
+                                                 Style="{StaticResource WindowCommandButtonStyle}"
                                                  Click="MaximizeRestore_OnClick"
-                                                 Content="[]" />
+                                                 Content="&#xE922;" />
                         <controls:AnimatedButton Style="{StaticResource CloseWindowButtonStyle}"
                                                  Click="Close_OnClick"
-                                                 Content="X"/>
+                                                 ToolTip="Close"
+                                                 Content="&#xE8BB;"/>
                     </StackPanel>
                 </Grid>
             </Border>
 
-            <Grid Grid.Row="1" Margin="20">
+            <Border Grid.Row="1"
+                    Margin="20,16,20,14">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+
+                    <controls:AnimatedButton x:Name="NavigationMenuButton"
+                                             Style="{StaticResource ToolbarSymbolButtonStyle}"
+                                             Click="NavigationMenuButton_OnClick"
+                                             ToolTip="Open tools and settings"
+                                             Content="&#xE700;" />
+
+                    <Popup x:Name="NavigationFlyout"
+                           Grid.ColumnSpan="2"
+                           PlacementTarget="{Binding ElementName=NavigationMenuButton}"
+                           Placement="Bottom"
+                           HorizontalOffset="0"
+                           VerticalOffset="8"
+                           AllowsTransparency="True"
+                           PopupAnimation="Fade"
+                           StaysOpen="False"
+                           DataContext="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource Self}}">
+                        <Border Width="280"
+                                Padding="14"
+                                Background="{DynamicResource SurfaceBrush}"
+                                BorderBrush="{DynamicResource BorderBrush}"
+                                BorderThickness="1"
+                                CornerRadius="14">
+                            <Border.Effect>
+                                <DropShadowEffect BlurRadius="20"
+                                                  Direction="270"
+                                                  Opacity="0.28"
+                                                  ShadowDepth="8"
+                                                  Color="{DynamicResource SidebarShadowColor}" />
+                            </Border.Effect>
+                            <Grid>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="*" />
+                                </Grid.RowDefinitions>
+
+                                <UniformGrid Columns="3">
+                                    <controls:AnimatedButton Content="Calculators"
+                                                             Command="{Binding SetNavigationSectionCommand}"
+                                                             CommandParameter="Calculators">
+                                        <controls:AnimatedButton.Style>
+                                            <Style TargetType="{x:Type controls:AnimatedButton}"
+                                                   BasedOn="{StaticResource NavigationCategoryButtonStyle}">
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding IsCalculatorsSection}" Value="True">
+                                                        <Setter Property="Foreground" Value="White" />
+                                                        <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}" />
+                                                        <Setter Property="NormalColor" Value="{DynamicResource AccentColor}" />
+                                                        <Setter Property="HoverColor" Value="{DynamicResource AccentHoverColor}" />
+                                                        <Setter Property="PressedColor" Value="{DynamicResource AccentPressedColor}" />
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </controls:AnimatedButton.Style>
+                                    </controls:AnimatedButton>
+
+                                    <controls:AnimatedButton Margin="8,0"
+                                                             Content="Converters"
+                                                             Command="{Binding SetNavigationSectionCommand}"
+                                                             CommandParameter="Converters">
+                                        <controls:AnimatedButton.Style>
+                                            <Style TargetType="{x:Type controls:AnimatedButton}"
+                                                   BasedOn="{StaticResource NavigationCategoryButtonStyle}">
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding IsConvertersSection}" Value="True">
+                                                        <Setter Property="Foreground" Value="White" />
+                                                        <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}" />
+                                                        <Setter Property="NormalColor" Value="{DynamicResource AccentColor}" />
+                                                        <Setter Property="HoverColor" Value="{DynamicResource AccentHoverColor}" />
+                                                        <Setter Property="PressedColor" Value="{DynamicResource AccentPressedColor}" />
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </controls:AnimatedButton.Style>
+                                    </controls:AnimatedButton>
+
+                                    <controls:AnimatedButton Content="Settings"
+                                                             Command="{Binding SetNavigationSectionCommand}"
+                                                             CommandParameter="Settings">
+                                        <controls:AnimatedButton.Style>
+                                            <Style TargetType="{x:Type controls:AnimatedButton}"
+                                                   BasedOn="{StaticResource NavigationCategoryButtonStyle}">
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding IsSettingsSection}" Value="True">
+                                                        <Setter Property="Foreground" Value="White" />
+                                                        <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}" />
+                                                        <Setter Property="NormalColor" Value="{DynamicResource AccentColor}" />
+                                                        <Setter Property="HoverColor" Value="{DynamicResource AccentHoverColor}" />
+                                                        <Setter Property="PressedColor" Value="{DynamicResource AccentPressedColor}" />
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </controls:AnimatedButton.Style>
+                                    </controls:AnimatedButton>
+                                </UniformGrid>
+
+                                <Border Grid.Row="1"
+                                        Height="1"
+                                        Margin="0,14,0,12"
+                                        Background="{DynamicResource BorderBrush}" />
+
+                                <Grid Grid.Row="2">
+                                    <StackPanel Style="{StaticResource CalculatorsSectionVisibilityStyle}">
+                                        <TextBlock Text="Choose a calculator"
+                                                   FontSize="12"
+                                                   FontWeight="SemiBold"
+                                                   Foreground="{DynamicResource MutedTextBrush}" />
+                                        <controls:AnimatedButton Margin="0,10,0,0"
+                                                                 Style="{StaticResource NavigationFlyoutButtonStyle}"
+                                                                 Content="Standard"
+                                                                 Command="{Binding SetCalculatorModeCommand}"
+                                                                 CommandParameter="Standard"
+                                                                 Click="NavigationFlyoutAction_OnClick" />
+                                        <controls:AnimatedButton Margin="0,6,0,0"
+                                                                 Style="{StaticResource NavigationFlyoutButtonStyle}"
+                                                                 Content="Scientific"
+                                                                 Command="{Binding SetCalculatorModeCommand}"
+                                                                 CommandParameter="Scientific"
+                                                                 Click="NavigationFlyoutAction_OnClick" />
+                                    </StackPanel>
+
+                                    <StackPanel Style="{StaticResource ConvertersSectionVisibilityStyle}">
+                                        <TextBlock Text="Open conversion tools"
+                                                   FontSize="12"
+                                                   FontWeight="SemiBold"
+                                                   Foreground="{DynamicResource MutedTextBrush}" />
+                                        <controls:AnimatedButton Margin="0,10,0,0"
+                                                                 Style="{StaticResource NavigationFlyoutButtonStyle}"
+                                                                 Content="Converters"
+                                                                 Command="{Binding SetCalculatorModeCommand}"
+                                                                 CommandParameter="Converters"
+                                                                 Click="NavigationFlyoutAction_OnClick" />
+                                        <TextBlock Margin="0,10,0,0"
+                                                   Text="Includes number-system and memory-size converters."
+                                                   TextWrapping="Wrap"
+                                                   Foreground="{DynamicResource MutedTextBrush}" />
+                                    </StackPanel>
+
+                                    <StackPanel Style="{StaticResource SettingsSectionVisibilityStyle}">
+                                        <TextBlock Text="App settings"
+                                                   FontSize="12"
+                                                   FontWeight="SemiBold"
+                                                   Foreground="{DynamicResource MutedTextBrush}" />
+                                        <controls:AnimatedButton Margin="0,10,0,0"
+                                                                 Style="{StaticResource NavigationFlyoutButtonStyle}"
+                                                                 Content="{Binding ThemeToggleToolTip}"
+                                                                 Command="{Binding ToggleThemeCommand}"
+                                                                 Click="NavigationFlyoutAction_OnClick" />
+                                        <controls:AnimatedButton Margin="0,6,0,0"
+                                                                 Style="{StaticResource NavigationFlyoutButtonStyle}"
+                                                                 Content="Clear history"
+                                                                 Command="{Binding ClearHistoryCommand}"
+                                                                 Click="NavigationFlyoutAction_OnClick" />
+                                    </StackPanel>
+                                </Grid>
+                            </Grid>
+                        </Border>
+                    </Popup>
+
+                    <controls:AnimatedButton Grid.Column="1"
+                                             Style="{StaticResource ToolbarSymbolButtonStyle}"
+                                             Command="{Binding ToggleHistoryCommand}"
+                                             ToolTip="Open history"
+                                             Content="&#xE81C;" />
+                </Grid>
+            </Border>
+
+            <Grid Grid.Row="2" Margin="20,0,20,20">
                 <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="Auto" />
@@ -100,8 +270,75 @@
                     <RowDefinition Height="*" />
                 </Grid.RowDefinitions>
 
-                <StackPanel Grid.Row="0">
-                    <TextBlock Text="Ausdruck"
+                <StackPanel Grid.Row="0"
+                            Orientation="Horizontal"
+                            Margin="0,0,0,18">
+                    <controls:AnimatedButton Margin="0,0,10,0"
+                                             Content="Standard"
+                                             Command="{Binding SetCalculatorModeCommand}"
+                                             CommandParameter="Standard">
+                        <controls:AnimatedButton.Style>
+                            <Style TargetType="{x:Type controls:AnimatedButton}"
+                                   BasedOn="{StaticResource CalculatorTabButtonStyle}">
+                                <Setter Property="Foreground" Value="{DynamicResource MutedTextBrush}" />
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding IsStandardMode}" Value="True">
+                                        <Setter Property="Foreground" Value="White" />
+                                        <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}" />
+                                        <Setter Property="NormalColor" Value="{DynamicResource AccentColor}" />
+                                        <Setter Property="HoverColor" Value="{DynamicResource AccentHoverColor}" />
+                                        <Setter Property="PressedColor" Value="{DynamicResource AccentPressedColor}" />
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </controls:AnimatedButton.Style>
+                    </controls:AnimatedButton>
+
+                    <controls:AnimatedButton Margin="0,0,10,0"
+                                             Content="Scientific"
+                                             Command="{Binding SetCalculatorModeCommand}"
+                                             CommandParameter="Scientific">
+                        <controls:AnimatedButton.Style>
+                            <Style TargetType="{x:Type controls:AnimatedButton}"
+                                   BasedOn="{StaticResource CalculatorTabButtonStyle}">
+                                <Setter Property="Foreground" Value="{DynamicResource MutedTextBrush}" />
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding IsScientificMode}" Value="True">
+                                        <Setter Property="Foreground" Value="White" />
+                                        <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}" />
+                                        <Setter Property="NormalColor" Value="{DynamicResource AccentColor}" />
+                                        <Setter Property="HoverColor" Value="{DynamicResource AccentHoverColor}" />
+                                        <Setter Property="PressedColor" Value="{DynamicResource AccentPressedColor}" />
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </controls:AnimatedButton.Style>
+                    </controls:AnimatedButton>
+
+                    <controls:AnimatedButton Content="Converters"
+                                             Command="{Binding SetCalculatorModeCommand}"
+                                             CommandParameter="Converters">
+                        <controls:AnimatedButton.Style>
+                            <Style TargetType="{x:Type controls:AnimatedButton}"
+                                   BasedOn="{StaticResource CalculatorTabButtonStyle}">
+                                <Setter Property="Foreground" Value="{DynamicResource MutedTextBrush}" />
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding IsConvertersMode}" Value="True">
+                                        <Setter Property="Foreground" Value="White" />
+                                        <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}" />
+                                        <Setter Property="NormalColor" Value="{DynamicResource AccentColor}" />
+                                        <Setter Property="HoverColor" Value="{DynamicResource AccentHoverColor}" />
+                                        <Setter Property="PressedColor" Value="{DynamicResource AccentPressedColor}" />
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </controls:AnimatedButton.Style>
+                    </controls:AnimatedButton>
+                </StackPanel>
+
+                <StackPanel Grid.Row="1"
+                            Style="{StaticResource CalculatorOnlyVisibilityStyle}">
+                    <TextBlock Text="Expression"
                                Foreground="{DynamicResource MutedTextBrush}"
                                Margin="0,0,0,8" />
                     <Border Background="{DynamicResource SurfaceRaisedBrush}"
@@ -125,7 +362,8 @@
                 </StackPanel>
 
                 <Border x:Name="ErrorContainer"
-                        Grid.Row="1"
+                        Grid.Row="2"
+                        Style="{StaticResource CalculatorOnlyVisibilityStyle}"
                         Margin="0,12,0,0"
                         Padding="12,10"
                         Background="{DynamicResource ErrorBackgroundBrush}"
@@ -133,15 +371,18 @@
                         BorderThickness="4,0,0,0"
                         CornerRadius="6"
                         ClipToBounds="True"
-                        MaxHeight="0"
                         Opacity="0"
                         Visibility="Collapsed">
+                    <Border.RenderTransform>
+                        <TranslateTransform Y="-6" />
+                    </Border.RenderTransform>
                     <TextBlock Text="{Binding ErrorMessage}"
                                Foreground="{DynamicResource TextBrush}"
                                TextWrapping="Wrap" />
                 </Border>
 
-                <Border Grid.Row="2"
+                <Border Grid.Row="3"
+                        Style="{StaticResource CalculatorOnlyVisibilityStyle}"
                         Margin="0,16,0,18"
                         Padding="16"
                         Background="{DynamicResource SurfaceBrush}"
@@ -149,7 +390,7 @@
                         BorderThickness="1"
                         CornerRadius="10">
                     <StackPanel>
-                        <TextBlock Text="Ergebnis"
+                        <TextBlock Text="Result"
                                    Foreground="{DynamicResource MutedTextBrush}" />
                         <TextBlock x:Name="ResultTextBlock"
                                    Text="{Binding Result}"
@@ -161,43 +402,253 @@
                     </StackPanel>
                 </Border>
 
-                <TextBlock Grid.Row="3"
-                           Text="Tasten"
+                <TextBlock Grid.Row="4"
+                           Style="{StaticResource CalculatorOnlyVisibilityStyle}"
+                           Text="Keypad"
                            Margin="0,0,0,10"
                            Foreground="{DynamicResource MutedTextBrush}" />
 
-                <ItemsControl Grid.Row="4"
-                              ItemsSource="{Binding Keys}">
-                    <ItemsControl.ItemsPanel>
-                        <ItemsPanelTemplate>
-                            <UniformGrid Rows="7" Columns="5" />
-                        </ItemsPanelTemplate>
-                    </ItemsControl.ItemsPanel>
-                    <ItemsControl.ItemTemplate>
-                        <DataTemplate>
-                            <controls:AnimatedButton Margin="5"
-                                                     Content="{Binding Label}"
-                                                     Command="{Binding Command}"
-                                                     CommandParameter="{Binding CommandParameter}"
-                                                     IsEnabled="{Binding IsEnabled}"
-                                                     Style="{StaticResource CalculatorKeyButtonStyle}" />
-                        </DataTemplate>
-                    </ItemsControl.ItemTemplate>
-                </ItemsControl>
+                <Grid Grid.Row="5"
+                      Style="{StaticResource CalculatorOnlyVisibilityStyle}">
+                    <ItemsControl ItemsSource="{Binding StandardKeys}">
+                        <ItemsControl.Style>
+                            <Style TargetType="{x:Type ItemsControl}">
+                                <Setter Property="Visibility" Value="Collapsed" />
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding IsStandardMode}" Value="True">
+                                        <Setter Property="Visibility" Value="Visible" />
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </ItemsControl.Style>
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <UniformGrid Columns="4" />
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <controls:AnimatedButton Margin="4"
+                                                         Content="{Binding Label}"
+                                                         Command="{Binding Command}"
+                                                         CommandParameter="{Binding CommandParameter}"
+                                                         IsEnabled="{Binding IsEnabled}"
+                                                         Style="{StaticResource CalculatorKeyButtonStyle}" />
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+
+                    <ItemsControl ItemsSource="{Binding ScientificKeys}">
+                        <ItemsControl.Style>
+                            <Style TargetType="{x:Type ItemsControl}">
+                                <Setter Property="Visibility" Value="Collapsed" />
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding IsScientificMode}" Value="True">
+                                        <Setter Property="Visibility" Value="Visible" />
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </ItemsControl.Style>
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <UniformGrid Columns="5" />
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <controls:AnimatedButton Margin="4"
+                                                         Content="{Binding Label}"
+                                                         Command="{Binding Command}"
+                                                         CommandParameter="{Binding CommandParameter}"
+                                                         IsEnabled="{Binding IsEnabled}"
+                                                         Style="{StaticResource CalculatorKeyButtonStyle}" />
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </Grid>
+
+                <ScrollViewer Grid.Row="1"
+                              Grid.RowSpan="5"
+                              Style="{StaticResource ConvertersOnlyVisibilityStyle}"
+                              VerticalScrollBarVisibility="Auto">
+                    <StackPanel Margin="0,2,0,0">
+                        <Border Margin="0,0,0,16"
+                                Padding="18"
+                                Background="{DynamicResource SurfaceBrush}"
+                                BorderBrush="{DynamicResource BorderBrush}"
+                                BorderThickness="1"
+                                CornerRadius="12">
+                            <StackPanel>
+                                <TextBlock Text="Number systems"
+                                           FontSize="18"
+                                           FontWeight="SemiBold" />
+                                <TextBlock Margin="0,6,0,0"
+                                           Text="Convert integers between binary, octal, decimal, and hexadecimal."
+                                           TextWrapping="Wrap"
+                                           Foreground="{DynamicResource MutedTextBrush}" />
+
+                                <Grid Margin="0,18,0,0">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="*" />
+                                    </Grid.ColumnDefinitions>
+
+                                    <StackPanel>
+                                        <TextBlock Text="Input value"
+                                                   Foreground="{DynamicResource MutedTextBrush}" />
+                                        <Border Margin="0,8,0,0"
+                                                Background="{DynamicResource SurfaceRaisedBrush}"
+                                                BorderBrush="{DynamicResource BorderBrush}"
+                                                BorderThickness="1"
+                                                CornerRadius="8"
+                                                Padding="14,12">
+                                            <TextBox Text="{Binding NumberSystemInput, UpdateSourceTrigger=PropertyChanged}"
+                                                     Style="{StaticResource ExpressionTextBoxStyle}" />
+                                        </Border>
+                                    </StackPanel>
+
+                                    <StackPanel Grid.Column="1"
+                                                Margin="14,0,0,0">
+                                        <TextBlock Text="From"
+                                                   Foreground="{DynamicResource MutedTextBrush}" />
+                                        <ComboBox Margin="0,8,0,0"
+                                                  ItemsSource="{Binding NumberBaseOptions}"
+                                                  SelectedItem="{Binding SelectedNumberBase}"
+                                                  Style="{StaticResource FlatComboBoxStyle}" />
+                                    </StackPanel>
+
+                                    <StackPanel Grid.Column="2"
+                                                Margin="14,0,0,0">
+                                        <TextBlock Text="To"
+                                                   Foreground="{DynamicResource MutedTextBrush}" />
+                                        <ComboBox Margin="0,8,0,0"
+                                                  ItemsSource="{Binding NumberBaseOptions}"
+                                                  SelectedItem="{Binding SelectedNumberTargetBase}"
+                                                  Style="{StaticResource FlatComboBoxStyle}" />
+                                    </StackPanel>
+                                </Grid>
+
+                                <TextBlock Margin="0,12,0,0"
+                                           Text="{Binding NumberSystemStatus}"
+                                           TextWrapping="Wrap"
+                                           Foreground="{DynamicResource MutedTextBrush}" />
+
+                                <Border Margin="0,16,0,0"
+                                        Padding="16"
+                                        Background="{DynamicResource SurfaceRaisedBrush}"
+                                        BorderBrush="{DynamicResource BorderBrush}"
+                                        BorderThickness="1"
+                                        CornerRadius="10">
+                                    <StackPanel>
+                                        <TextBlock Text="{Binding SelectedNumberTargetBase}"
+                                                   Foreground="{DynamicResource MutedTextBrush}" />
+                                        <TextBlock Margin="0,8,0,0"
+                                                   Text="{Binding NumberSystemOutput}"
+                                                   FontSize="22"
+                                                   FontWeight="SemiBold"
+                                                   TextWrapping="Wrap" />
+                                    </StackPanel>
+                                </Border>
+                            </StackPanel>
+                        </Border>
+
+                        <Border Padding="18"
+                                Background="{DynamicResource SurfaceBrush}"
+                                BorderBrush="{DynamicResource BorderBrush}"
+                                BorderThickness="1"
+                                CornerRadius="12">
+                            <StackPanel>
+                                <TextBlock Text="Memory size"
+                                           FontSize="18"
+                                           FontWeight="SemiBold" />
+                                <TextBlock Margin="0,6,0,0"
+                                           Text="Convert memory sizes across B, KB, MB, GB, and TB using 1024-based units."
+                                           TextWrapping="Wrap"
+                                           Foreground="{DynamicResource MutedTextBrush}" />
+
+                                <Grid Margin="0,18,0,0">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="*" />
+                                    </Grid.ColumnDefinitions>
+
+                                    <StackPanel>
+                                        <TextBlock Text="Input value"
+                                                   Foreground="{DynamicResource MutedTextBrush}" />
+                                        <Border Margin="0,8,0,0"
+                                                Background="{DynamicResource SurfaceRaisedBrush}"
+                                                BorderBrush="{DynamicResource BorderBrush}"
+                                                BorderThickness="1"
+                                                CornerRadius="8"
+                                                Padding="14,12">
+                                            <TextBox Text="{Binding MemoryInput, UpdateSourceTrigger=PropertyChanged}"
+                                                     Style="{StaticResource ExpressionTextBoxStyle}" />
+                                        </Border>
+                                    </StackPanel>
+
+                                    <StackPanel Grid.Column="1"
+                                                Margin="14,0,0,0">
+                                        <TextBlock Text="From"
+                                                   Foreground="{DynamicResource MutedTextBrush}" />
+                                        <ComboBox Margin="0,8,0,0"
+                                                  ItemsSource="{Binding MemoryUnitOptions}"
+                                                  SelectedItem="{Binding SelectedMemoryUnit}"
+                                                  Style="{StaticResource FlatComboBoxStyle}" />
+                                    </StackPanel>
+
+                                    <StackPanel Grid.Column="2"
+                                                Margin="14,0,0,0">
+                                        <TextBlock Text="To"
+                                                   Foreground="{DynamicResource MutedTextBrush}" />
+                                        <ComboBox Margin="0,8,0,0"
+                                                  ItemsSource="{Binding MemoryUnitOptions}"
+                                                  SelectedItem="{Binding SelectedMemoryTargetUnit}"
+                                                  Style="{StaticResource FlatComboBoxStyle}" />
+                                    </StackPanel>
+                                </Grid>
+
+                                <TextBlock Margin="0,12,0,0"
+                                           Text="{Binding MemoryStatus}"
+                                           TextWrapping="Wrap"
+                                           Foreground="{DynamicResource MutedTextBrush}" />
+
+                                <Border Margin="0,16,0,0"
+                                        Padding="16"
+                                        Background="{DynamicResource SurfaceRaisedBrush}"
+                                        BorderBrush="{DynamicResource BorderBrush}"
+                                        BorderThickness="1"
+                                        CornerRadius="10">
+                                    <StackPanel>
+                                        <TextBlock Text="{Binding SelectedMemoryTargetUnit}"
+                                                   Foreground="{DynamicResource MutedTextBrush}" />
+                                        <TextBlock Margin="0,8,0,0"
+                                                   Text="{Binding MemoryOutput}"
+                                                   FontSize="22"
+                                                   FontWeight="SemiBold"
+                                                   TextWrapping="Wrap" />
+                                    </StackPanel>
+                                </Border>
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+                </ScrollViewer>
             </Grid>
 
             <Border x:Name="HistorySidebar"
-                    Grid.RowSpan="2"
+                    Grid.Row="2"
                     Width="0"
                     HorizontalAlignment="Right"
                     VerticalAlignment="Stretch"
-                    Margin="0,48,0,0"
                     Padding="18,18,18,20"
                     Background="{DynamicResource SurfaceBrush}"
                     BorderBrush="{DynamicResource BorderBrush}"
                     BorderThickness="1,0,0,0"
                     Panel.ZIndex="10"
-                    ClipToBounds="True">
+                    ClipToBounds="True"
+                    Visibility="Collapsed"
+                    IsHitTestVisible="False">
                 <Border.Effect>
                     <DropShadowEffect BlurRadius="18"
                                       Direction="180"
@@ -217,21 +668,22 @@
                             <ColumnDefinition Width="Auto" />
                         </Grid.ColumnDefinitions>
                         <StackPanel>
-                            <TextBlock Text="Verlauf"
+                            <TextBlock Text="History"
                                        FontSize="15"
                                        FontWeight="SemiBold" />
-                            <TextBlock Text="Letzte Berechnungen"
+                            <TextBlock Text="Click to reuse. Right-click for more actions."
                                        Margin="0,4,0,0"
+                                       TextWrapping="Wrap"
                                        Foreground="{DynamicResource MutedTextBrush}" />
                         </StackPanel>
                         <controls:AnimatedButton Grid.Column="1"
                                                  Style="{StaticResource FlatSidebarButtonStyle}"
                                                  Command="{Binding ClearHistoryCommand}"
-                                                 Content="Verlauf l&#246;schen" />
+                                                 Content="Clear history" />
                     </Grid>
 
                     <Grid Grid.Row="1">
-                        <TextBlock Text="Noch keine Berechnungen gespeichert."
+                        <TextBlock Text="No saved calculations yet."
                                    Foreground="{DynamicResource MutedTextBrush}"
                                    Visibility="{Binding History.IsEmpty, Converter={StaticResource BooleanToVisibilityConverter}}"
                                    VerticalAlignment="Top" />
@@ -241,41 +693,47 @@
                             <ItemsControl ItemsSource="{Binding History.Entries}">
                                 <ItemsControl.ItemTemplate>
                                     <DataTemplate>
-                                        <Grid Margin="0,0,0,10">
-                                            <Grid.ColumnDefinitions>
-                                                <ColumnDefinition Width="*" />
-                                                <ColumnDefinition Width="Auto" />
-                                            </Grid.ColumnDefinitions>
-
-                                            <controls:AnimatedButton Grid.Column="0"
-                                                                     Style="{StaticResource HistoryEntryButtonStyle}"
-                                                    Command="{Binding DataContext.LoadHistoryEntryCommand, RelativeSource={RelativeSource AncestorType=Window}}"
-                                                     CommandParameter="{Binding}">
-                                                <StackPanel>
-                                                    <TextBlock Text="{Binding Expression}"
-                                                               TextWrapping="Wrap"
-                                                               FontWeight="SemiBold" />
-                                                    <TextBlock Margin="0,8,0,0"
-                                                               FontSize="18"
-                                                               FontWeight="SemiBold"
-                                                               Foreground="{DynamicResource ResultBrush}">
-                                                        <Run Text="= " />
-                                                        <Run Text="{Binding Result}" />
-                                                    </TextBlock>
-                                                    <TextBlock Text="{Binding Timestamp, StringFormat={}{0:dd.MM.yyyy HH:mm:ss}}"
-                                                               Margin="0,8,0,0"
-                                                               Foreground="{DynamicResource MutedTextBrush}" />
-                                                </StackPanel>
-                                            </controls:AnimatedButton>
-
-                                            <controls:AnimatedButton Grid.Column="1"
-                                                                     Style="{StaticResource DangerIconButtonStyle}"
-                                                                     Margin="10,0,0,0"
-                                                                     VerticalAlignment="Top"
-                                                                     Command="{Binding DataContext.DeleteHistoryEntryCommand, RelativeSource={RelativeSource AncestorType=Window}}"
-                                                                     CommandParameter="{Binding}"
-                                                                     Content="&#x1F5D1;" />
-                                        </Grid>
+                                        <controls:AnimatedButton Margin="0,0,0,10"
+                                                                 Style="{StaticResource HistoryEntryButtonStyle}"
+                                                                 Command="{Binding DataContext.LoadHistoryEntryCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                                 CommandParameter="{Binding}"
+                                                                 Tag="{Binding DataContext, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                                 ToolTip="Click to reuse. Right-click for more actions.">
+                                            <controls:AnimatedButton.ContextMenu>
+                                                <ContextMenu>
+                                                    <MenuItem Header="Use expression"
+                                                              Command="{Binding PlacementTarget.Tag.LoadHistoryEntryCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
+                                                              CommandParameter="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource AncestorType=ContextMenu}}" />
+                                                    <MenuItem Header="Copy expression"
+                                                              Command="{Binding PlacementTarget.Tag.CopyHistoryExpressionCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
+                                                              CommandParameter="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource AncestorType=ContextMenu}}" />
+                                                    <MenuItem Header="Copy result"
+                                                              Command="{Binding PlacementTarget.Tag.CopyHistoryResultCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
+                                                              CommandParameter="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource AncestorType=ContextMenu}}" />
+                                                    <Separator />
+                                                    <MenuItem Header="Delete entry"
+                                                              Command="{Binding PlacementTarget.Tag.DeleteHistoryEntryCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
+                                                              CommandParameter="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource AncestorType=ContextMenu}}" />
+                                                    <MenuItem Header="Clear all history"
+                                                              Command="{Binding PlacementTarget.Tag.ClearHistoryCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}" />
+                                                </ContextMenu>
+                                            </controls:AnimatedButton.ContextMenu>
+                                            <StackPanel>
+                                                <TextBlock Text="{Binding Expression}"
+                                                           TextWrapping="Wrap"
+                                                           FontWeight="SemiBold" />
+                                                <TextBlock Margin="0,8,0,0"
+                                                           FontSize="18"
+                                                           FontWeight="SemiBold"
+                                                           Foreground="{DynamicResource ResultBrush}">
+                                                    <Run Text="= " />
+                                                    <Run Text="{Binding Result}" />
+                                                </TextBlock>
+                                                <TextBlock Text="{Binding Timestamp, StringFormat={}{0:yyyy-MM-dd HH:mm:ss}}"
+                                                           Margin="0,8,0,0"
+                                                           Foreground="{DynamicResource MutedTextBrush}" />
+                                            </StackPanel>
+                                        </controls:AnimatedButton>
                                     </DataTemplate>
                                 </ItemsControl.ItemTemplate>
                             </ItemsControl>

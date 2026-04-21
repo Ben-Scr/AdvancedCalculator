@@ -1,6 +1,8 @@
 using System.ComponentModel;
 using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Input;
+using System.Windows.Media;
 using System.Windows.Media.Animation;
 using AdvancedCalculator.ViewModels;
 
@@ -9,21 +11,27 @@ namespace AdvancedCalculator.Views;
 public partial class MainWindow : Window
 {
     private const double SidebarOpenWidth = 280d;
+    private const double ErrorOffset = -6d;
 
     public MainWindow(MainViewModel viewModel)
     {
         InitializeComponent();
         DataContext = viewModel;
         Loaded += OnLoaded;
+        StateChanged += OnWindowStateChanged;
         Closed += OnClosed;
     }
 
     private MainViewModel ViewModel => (MainViewModel)DataContext;
+    private TranslateTransform ErrorTranslateTransform => (TranslateTransform)ErrorContainer.RenderTransform;
 
     private void OnLoaded(object sender, RoutedEventArgs e)
     {
         ViewModel.PropertyChanged += OnViewModelPropertyChanged;
         HistorySidebar.Width = ViewModel.IsHistoryOpen ? SidebarOpenWidth : 0d;
+        HistorySidebar.Visibility = ViewModel.IsHistoryOpen ? Visibility.Visible : Visibility.Collapsed;
+        HistorySidebar.IsHitTestVisible = ViewModel.IsHistoryOpen;
+        UpdateWindowStateControls();
         UpdateErrorState(animated: false);
         FocusExpressionBox();
     }
@@ -32,6 +40,7 @@ public partial class MainWindow : Window
     {
         ViewModel.PropertyChanged -= OnViewModelPropertyChanged;
         Loaded -= OnLoaded;
+        StateChanged -= OnWindowStateChanged;
         Closed -= OnClosed;
     }
 
@@ -39,7 +48,19 @@ public partial class MainWindow : Window
     {
         if (e.PropertyName == nameof(MainViewModel.IsHistoryOpen))
         {
-            AnimateSidebar(ViewModel.IsHistoryOpen);
+            UpdateSidebarState(ViewModel.IsHistoryOpen);
+            return;
+        }
+
+        if (e.PropertyName == nameof(MainViewModel.SelectedCalculatorMode))
+        {
+            NavigationFlyout.IsOpen = false;
+
+            if (ViewModel.IsCalculatorMode)
+            {
+                Dispatcher.InvokeAsync(FocusExpressionBox);
+            }
+
             return;
         }
 
@@ -81,6 +102,15 @@ public partial class MainWindow : Window
 
     private void Close_OnClick(object sender, RoutedEventArgs e) => Close();
 
+    private void NavigationMenuButton_OnClick(object sender, RoutedEventArgs e)
+    {
+        NavigationFlyout.IsOpen = !NavigationFlyout.IsOpen;
+    }
+
+    private void NavigationFlyoutAction_OnClick(object sender, RoutedEventArgs e) => NavigationFlyout.IsOpen = false;
+
+    private void OnWindowStateChanged(object? sender, EventArgs e) => UpdateWindowStateControls();
+
     private void ToggleWindowState()
     {
         WindowState = WindowState == WindowState.Maximized
@@ -88,37 +118,31 @@ public partial class MainWindow : Window
             : WindowState.Maximized;
     }
 
-    private void AnimateSidebar(bool isOpen)
+    private void UpdateSidebarState(bool isOpen)
     {
-        var animation = new DoubleAnimation
-        {
-            To = isOpen ? SidebarOpenWidth : 0d,
-            Duration = TimeSpan.FromMilliseconds(220),
-            EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut }
-        };
-
-        HistorySidebar.BeginAnimation(FrameworkElement.WidthProperty, animation);
+        HistorySidebar.BeginAnimation(FrameworkElement.WidthProperty, null);
+        HistorySidebar.Width = isOpen ? SidebarOpenWidth : 0d;
+        HistorySidebar.Visibility = isOpen ? Visibility.Visible : Visibility.Collapsed;
+        HistorySidebar.IsHitTestVisible = isOpen;
     }
 
     private void UpdateErrorState(bool animated)
     {
+        ErrorContainer.BeginAnimation(OpacityProperty, null);
+        ErrorTranslateTransform.BeginAnimation(TranslateTransform.YProperty, null);
+
         if (ViewModel.HasError)
         {
             ErrorContainer.Visibility = Visibility.Visible;
             if (!animated)
             {
-                ErrorContainer.MaxHeight = 40d;
                 ErrorContainer.Opacity = 1d;
+                ErrorTranslateTransform.Y = 0d;
                 return;
             }
 
-            ErrorContainer.BeginAnimation(MaxHeightProperty, new DoubleAnimation
-            {
-                From = 0d,
-                To = 40d,
-                Duration = TimeSpan.FromMilliseconds(180),
-                EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut }
-            });
+            ErrorContainer.Opacity = 0d;
+            ErrorTranslateTransform.Y = ErrorOffset;
 
             ErrorContainer.BeginAnimation(OpacityProperty, new DoubleAnimation
             {
@@ -127,30 +151,45 @@ public partial class MainWindow : Window
                 Duration = TimeSpan.FromMilliseconds(180)
             });
 
+            ErrorTranslateTransform.BeginAnimation(TranslateTransform.YProperty, new DoubleAnimation
+            {
+                From = ErrorOffset,
+                To = 0d,
+                Duration = TimeSpan.FromMilliseconds(180),
+                EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut }
+            });
+
             return;
         }
 
         if (!animated)
         {
-            ErrorContainer.MaxHeight = 0d;
             ErrorContainer.Opacity = 0d;
+            ErrorTranslateTransform.Y = ErrorOffset;
             ErrorContainer.Visibility = Visibility.Collapsed;
             return;
         }
 
-        var collapseAnimation = new DoubleAnimation
-        {
-            To = 0d,
-            Duration = TimeSpan.FromMilliseconds(140),
-            EasingFunction = new CubicEase { EasingMode = EasingMode.EaseIn }
-        };
-
-        collapseAnimation.Completed += (_, _) => ErrorContainer.Visibility = Visibility.Collapsed;
-        ErrorContainer.BeginAnimation(MaxHeightProperty, collapseAnimation);
-        ErrorContainer.BeginAnimation(OpacityProperty, new DoubleAnimation
+        var opacityAnimation = new DoubleAnimation
         {
             To = 0d,
             Duration = TimeSpan.FromMilliseconds(120)
+        };
+
+        opacityAnimation.Completed += (_, _) =>
+        {
+            if (!ViewModel.HasError)
+            {
+                ErrorContainer.Visibility = Visibility.Collapsed;
+            }
+        };
+
+        ErrorContainer.BeginAnimation(OpacityProperty, opacityAnimation);
+        ErrorTranslateTransform.BeginAnimation(TranslateTransform.YProperty, new DoubleAnimation
+        {
+            To = ErrorOffset,
+            Duration = TimeSpan.FromMilliseconds(140),
+            EasingFunction = new CubicEase { EasingMode = EasingMode.EaseIn }
         });
     }
 
@@ -169,5 +208,11 @@ public partial class MainWindow : Window
     {
         ExpressionTextBox.Focus();
         ExpressionTextBox.CaretIndex = ExpressionTextBox.Text.Length;
+    }
+
+    private void UpdateWindowStateControls()
+    {
+        MaximizeRestoreButton.Content = WindowState == WindowState.Maximized ? "\uE923" : "\uE922";
+        MaximizeRestoreButton.ToolTip = WindowState == WindowState.Maximized ? "Restore" : "Maximize";
     }
 }

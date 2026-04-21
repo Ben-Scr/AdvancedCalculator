@@ -1,4 +1,5 @@
 using System.Collections.ObjectModel;
+using System.Windows;
 using AdvancedCalculator.Core;
 using AdvancedCalculator.Models;
 using AdvancedCalculator.Services;
@@ -7,7 +8,15 @@ namespace AdvancedCalculator.ViewModels;
 
 public sealed class MainViewModel : ObservableObject
 {
+    private const string StandardMode = "Standard";
+    private const string ScientificMode = "Scientific";
+    private const string ConverterMode = "Converters";
+    private const string CalculatorsSection = "Calculators";
+    private const string ConvertersSection = "Converters";
+    private const string SettingsSection = "Settings";
+
     private readonly CalculatorService _calculatorService;
+    private readonly ConverterService _converterService;
     private readonly HistoryService _historyService;
     private readonly SettingsService _settingsService;
     private double? _lastResult;
@@ -17,14 +26,28 @@ public sealed class MainViewModel : ObservableObject
     private int _caretIndex;
     private bool _isHistoryOpen;
     private string _theme = "dark";
+    private string _selectedCalculatorMode = StandardMode;
+    private string _selectedNavigationSection = CalculatorsSection;
+    private string _numberSystemInput = string.Empty;
+    private string _selectedNumberBase = "Binary";
+    private string _selectedNumberTargetBase = "Decimal";
+    private string _numberSystemOutput = "-";
+    private string _numberSystemStatus = "Enter a whole number to see all supported bases.";
+    private string _memoryInput = string.Empty;
+    private string _selectedMemoryUnit = "MB";
+    private string _selectedMemoryTargetUnit = "GB";
+    private string _memoryOutput = "-";
+    private string _memoryStatus = "Enter a value to convert memory sizes.";
 
     public MainViewModel(
         CalculatorService calculatorService,
+        ConverterService converterService,
         HistoryService historyService,
         SettingsService settingsService,
         HistoryViewModel history)
     {
         _calculatorService = calculatorService;
+        _converterService = converterService;
         _historyService = historyService;
         _settingsService = settingsService;
         History = history;
@@ -34,14 +57,39 @@ public sealed class MainViewModel : ObservableObject
         BackspaceCommand = new RelayCommand(_ => DeleteBackward());
         ToggleThemeCommand = new RelayCommand(async _ => await ToggleThemeAsync());
         ToggleHistoryCommand = new RelayCommand(_ => IsHistoryOpen = !IsHistoryOpen);
+        SetCalculatorModeCommand = new RelayCommand(mode => SetCalculatorMode(mode as string));
+        SetNavigationSectionCommand = new RelayCommand(section => SetNavigationSection(section as string));
         DeleteHistoryEntryCommand = new RelayCommand(async item => await DeleteHistoryEntryAsync(item as CalculationHistoryItem));
         LoadHistoryEntryCommand = new RelayCommand(item => LoadHistoryEntry(item as CalculationHistoryItem));
+        CopyHistoryExpressionCommand = new RelayCommand(item => CopyHistoryExpression(item as CalculationHistoryItem));
+        CopyHistoryResultCommand = new RelayCommand(item => CopyHistoryResult(item as CalculationHistoryItem));
         ClearHistoryCommand = new RelayCommand(async _ => await ClearHistoryAsync(), _ => History.HasEntries);
 
-        BuildKeys();
+        BuildStandardKeys();
+        BuildScientificKeys();
+        InitializeConverters();
     }
 
-    public ObservableCollection<CalcKey> Keys { get; } = [];
+    public ObservableCollection<CalcKey> StandardKeys { get; } = [];
+
+    public ObservableCollection<CalcKey> ScientificKeys { get; } = [];
+
+    public ObservableCollection<string> NumberBaseOptions { get; } =
+    [
+        "Binary",
+        "Octal",
+        "Decimal",
+        "Hexadecimal"
+    ];
+
+    public ObservableCollection<string> MemoryUnitOptions { get; } =
+    [
+        "B",
+        "KB",
+        "MB",
+        "GB",
+        "TB"
+    ];
 
     public HistoryViewModel History { get; }
 
@@ -55,9 +103,17 @@ public sealed class MainViewModel : ObservableObject
 
     public RelayCommand ToggleHistoryCommand { get; }
 
+    public RelayCommand SetCalculatorModeCommand { get; }
+
+    public RelayCommand SetNavigationSectionCommand { get; }
+
     public RelayCommand DeleteHistoryEntryCommand { get; }
 
     public RelayCommand LoadHistoryEntryCommand { get; }
+
+    public RelayCommand CopyHistoryExpressionCommand { get; }
+
+    public RelayCommand CopyHistoryResultCommand { get; }
 
     public RelayCommand ClearHistoryCommand { get; }
 
@@ -119,6 +175,145 @@ public sealed class MainViewModel : ObservableObject
         set => SetProperty(ref _isHistoryOpen, value);
     }
 
+    public string SelectedCalculatorMode
+    {
+        get => _selectedCalculatorMode;
+        private set
+        {
+            if (SetProperty(ref _selectedCalculatorMode, value))
+            {
+                OnPropertyChanged(nameof(IsStandardMode));
+                OnPropertyChanged(nameof(IsScientificMode));
+                OnPropertyChanged(nameof(IsConvertersMode));
+                OnPropertyChanged(nameof(IsCalculatorMode));
+            }
+        }
+    }
+
+    public bool IsStandardMode => SelectedCalculatorMode == StandardMode;
+
+    public bool IsScientificMode => SelectedCalculatorMode == ScientificMode;
+
+    public bool IsConvertersMode => SelectedCalculatorMode == ConverterMode;
+
+    public bool IsCalculatorMode => !IsConvertersMode;
+
+    public string SelectedNavigationSection
+    {
+        get => _selectedNavigationSection;
+        private set
+        {
+            if (SetProperty(ref _selectedNavigationSection, value))
+            {
+                OnPropertyChanged(nameof(IsCalculatorsSection));
+                OnPropertyChanged(nameof(IsConvertersSection));
+                OnPropertyChanged(nameof(IsSettingsSection));
+            }
+        }
+    }
+
+    public bool IsCalculatorsSection => SelectedNavigationSection == CalculatorsSection;
+
+    public bool IsConvertersSection => SelectedNavigationSection == ConvertersSection;
+
+    public bool IsSettingsSection => SelectedNavigationSection == SettingsSection;
+
+    public string NumberSystemInput
+    {
+        get => _numberSystemInput;
+        set
+        {
+            if (SetProperty(ref _numberSystemInput, value ?? string.Empty))
+            {
+                UpdateNumberSystemResults();
+            }
+        }
+    }
+
+    public string SelectedNumberBase
+    {
+        get => _selectedNumberBase;
+        set
+        {
+            if (SetProperty(ref _selectedNumberBase, value))
+            {
+                UpdateNumberSystemResults();
+            }
+        }
+    }
+
+    public string SelectedNumberTargetBase
+    {
+        get => _selectedNumberTargetBase;
+        set
+        {
+            if (SetProperty(ref _selectedNumberTargetBase, value))
+            {
+                UpdateNumberSystemResults();
+            }
+        }
+    }
+
+    public string NumberSystemOutput
+    {
+        get => _numberSystemOutput;
+        private set => SetProperty(ref _numberSystemOutput, value);
+    }
+
+    public string NumberSystemStatus
+    {
+        get => _numberSystemStatus;
+        private set => SetProperty(ref _numberSystemStatus, value);
+    }
+
+    public string MemoryInput
+    {
+        get => _memoryInput;
+        set
+        {
+            if (SetProperty(ref _memoryInput, value ?? string.Empty))
+            {
+                UpdateMemoryResults();
+            }
+        }
+    }
+
+    public string SelectedMemoryUnit
+    {
+        get => _selectedMemoryUnit;
+        set
+        {
+            if (SetProperty(ref _selectedMemoryUnit, value))
+            {
+                UpdateMemoryResults();
+            }
+        }
+    }
+
+    public string SelectedMemoryTargetUnit
+    {
+        get => _selectedMemoryTargetUnit;
+        set
+        {
+            if (SetProperty(ref _selectedMemoryTargetUnit, value))
+            {
+                UpdateMemoryResults();
+            }
+        }
+    }
+
+    public string MemoryOutput
+    {
+        get => _memoryOutput;
+        private set => SetProperty(ref _memoryOutput, value);
+    }
+
+    public string MemoryStatus
+    {
+        get => _memoryStatus;
+        private set => SetProperty(ref _memoryStatus, value);
+    }
+
     public string Theme
     {
         get => _theme;
@@ -134,7 +329,7 @@ public sealed class MainViewModel : ObservableObject
 
     public string ThemeToggleGlyph => Theme == "dark" ? "\u2600" : "\u263E";
 
-    public string ThemeToggleToolTip => Theme == "dark" ? "Helles Design aktivieren" : "Dunkles Design aktivieren";
+    public string ThemeToggleToolTip => Theme == "dark" ? "Switch to light theme" : "Switch to dark theme";
 
     public async Task InitializeAsync(UserSettings settings)
     {
@@ -145,61 +340,190 @@ public sealed class MainViewModel : ObservableObject
         ClearHistoryCommand.RaiseCanExecuteChanged();
     }
 
-    private void BuildKeys()
+    private void InitializeConverters()
     {
-        Keys.Clear();
-
-        AddKey("AC", ClearCommand);
-        AddKey("DEL", BackspaceCommand);
-        AddKey("(", new RelayCommand(_ => InsertOpenParenthesis()));
-        AddKey(")", new RelayCommand(_ => InsertText(")")));
-        AddKey("%", new RelayCommand(_ => InsertPercent()));
-
-        AddKey("sin", new RelayCommand(_ => InsertFunction("sin")));
-        AddKey("cos", new RelayCommand(_ => InsertFunction("cos")));
-        AddKey("tan", new RelayCommand(_ => InsertFunction("tan")));
-        AddKey("log", new RelayCommand(_ => InsertFunction("log")));
-        AddKey("log10", new RelayCommand(_ => InsertFunction("log10")));
-
-        AddKey("sqrt", new RelayCommand(_ => InsertFunction("sqrt")));
-        AddKey("pow", new RelayCommand(_ => InsertFunction("pow")));
-        AddKey("abs", new RelayCommand(_ => InsertFunction("abs")));
-        AddKey("ceil", new RelayCommand(_ => InsertFunction("ceil")));
-        AddKey("floor", new RelayCommand(_ => InsertFunction("floor")));
-
-        AddKey("7", new RelayCommand(_ => InsertNumberOrToken("7")));
-        AddKey("8", new RelayCommand(_ => InsertNumberOrToken("8")));
-        AddKey("9", new RelayCommand(_ => InsertNumberOrToken("9")));
-        AddKey("/", new RelayCommand(_ => InsertOperator("/")));
-        AddKey("*", new RelayCommand(_ => InsertOperator("*")));
-
-        AddKey("4", new RelayCommand(_ => InsertNumberOrToken("4")));
-        AddKey("5", new RelayCommand(_ => InsertNumberOrToken("5")));
-        AddKey("6", new RelayCommand(_ => InsertNumberOrToken("6")));
-        AddKey("-", new RelayCommand(_ => InsertOperator("-")));
-        AddKey("+", new RelayCommand(_ => InsertOperator("+")));
-
-        AddKey("1", new RelayCommand(_ => InsertNumberOrToken("1")));
-        AddKey("2", new RelayCommand(_ => InsertNumberOrToken("2")));
-        AddKey("3", new RelayCommand(_ => InsertNumberOrToken("3")));
-        AddKey("pi", new RelayCommand(_ => InsertConstant("pi")));
-        AddKey("e", new RelayCommand(_ => InsertConstant("e")));
-
-        AddKey("0", new RelayCommand(_ => InsertNumberOrToken("0")));
-        AddKey(".", new RelayCommand(_ => InsertDecimalPoint()));
-        AddKey(",", new RelayCommand(_ => InsertArgumentSeparator()));
-        AddKey("Ans", new RelayCommand(_ => InsertConstant("Ans")));
-        AddKey("=", EvaluateCommand, isAccent: true);
+        UpdateNumberSystemResults();
+        UpdateMemoryResults();
     }
 
-    private void AddKey(string label, RelayCommand command, bool isAccent = false)
+    private void BuildScientificKeys()
     {
-        Keys.Add(new CalcKey
+        ScientificKeys.Clear();
+
+        AddKey(ScientificKeys, "AC", ClearCommand);
+        AddKey(ScientificKeys, "DEL", BackspaceCommand);
+        AddKey(ScientificKeys, "(", new RelayCommand(_ => InsertOpenParenthesis()));
+        AddKey(ScientificKeys, ")", new RelayCommand(_ => InsertText(")")));
+        AddKey(ScientificKeys, "%", new RelayCommand(_ => InsertPercent()));
+
+        AddKey(ScientificKeys, "sin", new RelayCommand(_ => InsertFunction("sin")));
+        AddKey(ScientificKeys, "cos", new RelayCommand(_ => InsertFunction("cos")));
+        AddKey(ScientificKeys, "tan", new RelayCommand(_ => InsertFunction("tan")));
+        AddKey(ScientificKeys, "log", new RelayCommand(_ => InsertFunction("log")));
+        AddKey(ScientificKeys, "log10", new RelayCommand(_ => InsertFunction("log10")));
+
+        AddKey(ScientificKeys, "sqrt", new RelayCommand(_ => InsertFunction("sqrt")));
+        AddKey(ScientificKeys, "pow", new RelayCommand(_ => InsertFunction("pow")));
+        AddKey(ScientificKeys, "abs", new RelayCommand(_ => InsertFunction("abs")));
+        AddKey(ScientificKeys, "ceil", new RelayCommand(_ => InsertFunction("ceil")));
+        AddKey(ScientificKeys, "floor", new RelayCommand(_ => InsertFunction("floor")));
+
+        AddKey(ScientificKeys, "7", new RelayCommand(_ => InsertNumberOrToken("7")));
+        AddKey(ScientificKeys, "8", new RelayCommand(_ => InsertNumberOrToken("8")));
+        AddKey(ScientificKeys, "9", new RelayCommand(_ => InsertNumberOrToken("9")));
+        AddKey(ScientificKeys, "/", new RelayCommand(_ => InsertOperator("/")));
+        AddKey(ScientificKeys, "*", new RelayCommand(_ => InsertOperator("*")));
+
+        AddKey(ScientificKeys, "4", new RelayCommand(_ => InsertNumberOrToken("4")));
+        AddKey(ScientificKeys, "5", new RelayCommand(_ => InsertNumberOrToken("5")));
+        AddKey(ScientificKeys, "6", new RelayCommand(_ => InsertNumberOrToken("6")));
+        AddKey(ScientificKeys, "-", new RelayCommand(_ => InsertOperator("-")));
+        AddKey(ScientificKeys, "+", new RelayCommand(_ => InsertOperator("+")));
+
+        AddKey(ScientificKeys, "1", new RelayCommand(_ => InsertNumberOrToken("1")));
+        AddKey(ScientificKeys, "2", new RelayCommand(_ => InsertNumberOrToken("2")));
+        AddKey(ScientificKeys, "3", new RelayCommand(_ => InsertNumberOrToken("3")));
+        AddKey(ScientificKeys, "pi", new RelayCommand(_ => InsertConstant("pi")));
+        AddKey(ScientificKeys, "e", new RelayCommand(_ => InsertConstant("e")));
+
+        AddKey(ScientificKeys, "0", new RelayCommand(_ => InsertNumberOrToken("0")));
+        AddKey(ScientificKeys, ".", new RelayCommand(_ => InsertDecimalPoint()));
+        AddKey(ScientificKeys, ",", new RelayCommand(_ => InsertArgumentSeparator()));
+        AddKey(ScientificKeys, "Ans", new RelayCommand(_ => InsertConstant("Ans")));
+        AddKey(ScientificKeys, "=", EvaluateCommand, isAccent: true);
+    }
+
+    private void BuildStandardKeys()
+    {
+        StandardKeys.Clear();
+
+        AddKey(StandardKeys, "AC", ClearCommand);
+        AddKey(StandardKeys, "DEL", BackspaceCommand);
+        AddKey(StandardKeys, "(", new RelayCommand(_ => InsertOpenParenthesis()));
+        AddKey(StandardKeys, ")", new RelayCommand(_ => InsertText(")")));
+
+        AddKey(StandardKeys, "7", new RelayCommand(_ => InsertNumberOrToken("7")));
+        AddKey(StandardKeys, "8", new RelayCommand(_ => InsertNumberOrToken("8")));
+        AddKey(StandardKeys, "9", new RelayCommand(_ => InsertNumberOrToken("9")));
+        AddKey(StandardKeys, "/", new RelayCommand(_ => InsertOperator("/")));
+
+        AddKey(StandardKeys, "4", new RelayCommand(_ => InsertNumberOrToken("4")));
+        AddKey(StandardKeys, "5", new RelayCommand(_ => InsertNumberOrToken("5")));
+        AddKey(StandardKeys, "6", new RelayCommand(_ => InsertNumberOrToken("6")));
+        AddKey(StandardKeys, "*", new RelayCommand(_ => InsertOperator("*")));
+
+        AddKey(StandardKeys, "1", new RelayCommand(_ => InsertNumberOrToken("1")));
+        AddKey(StandardKeys, "2", new RelayCommand(_ => InsertNumberOrToken("2")));
+        AddKey(StandardKeys, "3", new RelayCommand(_ => InsertNumberOrToken("3")));
+        AddKey(StandardKeys, "-", new RelayCommand(_ => InsertOperator("-")));
+
+        AddKey(StandardKeys, "0", new RelayCommand(_ => InsertNumberOrToken("0")));
+        AddKey(StandardKeys, ".", new RelayCommand(_ => InsertDecimalPoint()));
+        AddKey(StandardKeys, "^", new RelayCommand(_ => InsertOperator("^")));
+        AddKey(StandardKeys, "+", new RelayCommand(_ => InsertOperator("+")));
+
+        AddPlaceholder(StandardKeys);
+        AddPlaceholder(StandardKeys);
+        AddPlaceholder(StandardKeys);
+        AddKey(StandardKeys, "=", EvaluateCommand, isAccent: true);
+    }
+
+    private static void AddKey(ICollection<CalcKey> keys, string label, RelayCommand command, bool isAccent = false)
+    {
+        keys.Add(new CalcKey
         {
             Label = label,
             Command = command,
             IsAccent = isAccent
         });
+    }
+
+    private static void AddPlaceholder(ICollection<CalcKey> keys)
+    {
+        keys.Add(new CalcKey
+        {
+            IsEnabled = false,
+            IsPlaceholder = true
+        });
+    }
+
+    private void SetCalculatorMode(string? mode)
+    {
+        if (string.Equals(mode, ScientificMode, StringComparison.OrdinalIgnoreCase))
+        {
+            SelectedCalculatorMode = ScientificMode;
+            SelectedNavigationSection = CalculatorsSection;
+            return;
+        }
+
+        if (string.Equals(mode, ConverterMode, StringComparison.OrdinalIgnoreCase))
+        {
+            SelectedCalculatorMode = ConverterMode;
+            SelectedNavigationSection = ConvertersSection;
+            return;
+        }
+
+        SelectedCalculatorMode = StandardMode;
+        SelectedNavigationSection = CalculatorsSection;
+    }
+
+    private void SetNavigationSection(string? section)
+    {
+        if (string.Equals(section, ConvertersSection, StringComparison.OrdinalIgnoreCase))
+        {
+            SelectedNavigationSection = ConvertersSection;
+            return;
+        }
+
+        if (string.Equals(section, SettingsSection, StringComparison.OrdinalIgnoreCase))
+        {
+            SelectedNavigationSection = SettingsSection;
+            return;
+        }
+
+        SelectedNavigationSection = CalculatorsSection;
+    }
+
+    private void UpdateNumberSystemResults()
+    {
+        if (string.IsNullOrWhiteSpace(NumberSystemInput))
+        {
+            NumberSystemOutput = "-";
+            NumberSystemStatus = "Enter a whole number to see all supported bases.";
+            return;
+        }
+
+        try
+        {
+            NumberSystemOutput = _converterService.ConvertNumberSystem(NumberSystemInput, SelectedNumberBase, SelectedNumberTargetBase);
+            NumberSystemStatus = $"Converting from {SelectedNumberBase} to {SelectedNumberTargetBase}.";
+        }
+        catch (CalculationException ex)
+        {
+            NumberSystemOutput = "-";
+            NumberSystemStatus = ex.Message;
+        }
+    }
+
+    private void UpdateMemoryResults()
+    {
+        if (string.IsNullOrWhiteSpace(MemoryInput))
+        {
+            MemoryOutput = "-";
+            MemoryStatus = "Enter a value to convert memory sizes.";
+            return;
+        }
+
+        try
+        {
+            MemoryOutput = _converterService.ConvertMemorySize(MemoryInput, SelectedMemoryUnit, SelectedMemoryTargetUnit);
+            MemoryStatus = $"Converting from {SelectedMemoryUnit} to {SelectedMemoryTargetUnit} using 1024-based units.";
+        }
+        catch (CalculationException ex)
+        {
+            MemoryOutput = "-";
+            MemoryStatus = ex.Message;
+        }
     }
 
     private async Task EvaluateAsync()
@@ -243,6 +567,7 @@ public sealed class MainViewModel : ObservableObject
         Expression = string.Empty;
         Result = "0";
         ErrorMessage = string.Empty;
+        _lastResult = null;
         CaretIndex = 0;
     }
 
@@ -253,17 +578,17 @@ public sealed class MainViewModel : ObservableObject
             return;
         }
 
+        var removeStart = CaretIndex - 1;
         var removeLength = 1;
-        if (CaretIndex >= 3 &&
-            Expression[CaretIndex - 1] == ' ' &&
-            IsBinaryOperator(Expression[CaretIndex - 2]) &&
-            Expression[CaretIndex - 3] == ' ')
+
+        if (TryGetGroupedBinaryOperatorSpanToLeft(CaretIndex, out var groupedOperatorStart, out var groupedOperatorEnd))
         {
-            removeLength = 3;
+            removeStart = groupedOperatorStart;
+            removeLength = groupedOperatorEnd - groupedOperatorStart;
         }
 
-        Expression = Expression.Remove(CaretIndex - removeLength, removeLength);
-        CaretIndex -= removeLength;
+        Expression = Expression.Remove(removeStart, removeLength);
+        CaretIndex = removeStart;
     }
 
     private async Task ToggleThemeAsync()
@@ -305,9 +630,29 @@ public sealed class MainViewModel : ObservableObject
         await _historyService.SaveAsync(History.ToList());
     }
 
+    private void CopyHistoryExpression(CalculationHistoryItem? item)
+    {
+        if (item is null || string.IsNullOrWhiteSpace(item.Expression))
+        {
+            return;
+        }
+
+        Clipboard.SetText(item.Expression);
+    }
+
+    private void CopyHistoryResult(CalculationHistoryItem? item)
+    {
+        if (item is null || string.IsNullOrWhiteSpace(item.Result))
+        {
+            return;
+        }
+
+        Clipboard.SetText(item.Result);
+    }
+
     private void InsertFunction(string functionName)
     {
-        var prefix = NeedsImplicitMultiplication() ? "*" : string.Empty;
+        var prefix = NeedsImplicitMultiplicationBeforeValue() ? "*" : string.Empty;
 
         if (functionName.Equals("pow", StringComparison.OrdinalIgnoreCase))
         {
@@ -320,19 +665,19 @@ public sealed class MainViewModel : ObservableObject
 
     private void InsertConstant(string constant)
     {
-        var prefix = NeedsImplicitMultiplication() ? "*" : string.Empty;
+        var prefix = NeedsImplicitMultiplicationBeforeValue() ? "*" : string.Empty;
         InsertText($"{prefix}{constant}");
     }
 
     private void InsertOpenParenthesis()
     {
-        var prefix = NeedsImplicitMultiplication() ? "*" : string.Empty;
+        var prefix = NeedsImplicitMultiplicationBeforeValue() ? "*" : string.Empty;
         InsertText($"{prefix}(");
     }
 
     private void InsertNumberOrToken(string token)
     {
-        var prefix = NeedsImplicitMultiplication() ? "*" : string.Empty;
+        var prefix = NeedsImplicitMultiplicationBeforeNumber() ? "*" : string.Empty;
         InsertText($"{prefix}{token}");
     }
 
@@ -350,7 +695,7 @@ public sealed class MainViewModel : ObservableObject
             return;
         }
 
-        if (previous == ')' || previous == '%')
+        if (previous == ')' || previous == '%' || char.IsLetter(previous.Value))
         {
             InsertText("*0.");
             return;
@@ -409,10 +754,21 @@ public sealed class MainViewModel : ObservableObject
         CaretIndex = insertAt + (caretOffset ?? text.Length);
     }
 
-    private bool NeedsImplicitMultiplication()
+    private bool NeedsImplicitMultiplicationBeforeValue()
     {
         var previous = GetPreviousMeaningfulCharacter();
-        return previous is not null && (char.IsDigit(previous.Value) || char.IsLetter(previous.Value) || previous == ')' || previous == '%');
+        return previous is not null &&
+               (char.IsDigit(previous.Value) ||
+                char.IsLetter(previous.Value) ||
+                previous == ')' ||
+                previous == '%' ||
+                previous == '.');
+    }
+
+    private bool NeedsImplicitMultiplicationBeforeNumber()
+    {
+        var previous = GetPreviousMeaningfulCharacter();
+        return previous is not null && (char.IsLetter(previous.Value) || previous == ')' || previous == '%');
     }
 
     private bool CurrentNumberContainsDecimalPoint()
@@ -459,6 +815,54 @@ public sealed class MainViewModel : ObservableObject
         }
 
         return null;
+    }
+
+    private bool TryGetGroupedBinaryOperatorSpanToLeft(int caretIndex, out int start, out int end)
+    {
+        start = 0;
+        end = 0;
+
+        if (string.IsNullOrEmpty(Expression) || caretIndex <= 0)
+        {
+            return false;
+        }
+
+        var probe = caretIndex - 1;
+        while (probe >= 0 && char.IsWhiteSpace(Expression[probe]))
+        {
+            probe--;
+        }
+
+        if (probe < 0 || !IsGroupedBinaryOperatorAt(probe))
+        {
+            return false;
+        }
+
+        start = probe;
+        while (start > 0 && char.IsWhiteSpace(Expression[start - 1]))
+        {
+            start--;
+        }
+
+        end = probe + 1;
+        while (end < Expression.Length && char.IsWhiteSpace(Expression[end]))
+        {
+            end++;
+        }
+
+        return true;
+    }
+
+    private bool IsGroupedBinaryOperatorAt(int index)
+    {
+        if (!IsBinaryOperator(Expression[index]))
+        {
+            return false;
+        }
+
+        var hasWhitespaceBefore = index > 0 && char.IsWhiteSpace(Expression[index - 1]);
+        var hasWhitespaceAfter = index + 1 < Expression.Length && char.IsWhiteSpace(Expression[index + 1]);
+        return hasWhitespaceBefore && hasWhitespaceAfter;
     }
 
     private static bool IsBinaryOperator(char value) => value is '+' or '-' or '*' or '/' or '^';
