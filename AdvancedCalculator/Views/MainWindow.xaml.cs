@@ -1,8 +1,10 @@
 using System.ComponentModel;
 using System.Windows;
+using System.Windows.Controls.Primitives;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Animation;
+using BenScr.AdvancedCalculator.Controls;
 using BenScr.AdvancedCalculator.ViewModels;
 
 namespace BenScr.AdvancedCalculator.Views;
@@ -102,6 +104,18 @@ public partial class MainWindow : Window
     private void MaximizeRestore_OnClick(object sender, RoutedEventArgs e) => ToggleWindowState();
 
     private void Close_OnClick(object sender, RoutedEventArgs e) => Close();
+
+    private void NavigationMenuButton_OnClick(object sender, RoutedEventArgs e)
+    {
+        if (sender is not AnimatedButton button || button.ContextMenu is null)
+        {
+            return;
+        }
+
+        button.ContextMenu.PlacementTarget = button;
+        button.ContextMenu.Placement = PlacementMode.Bottom;
+        button.ContextMenu.IsOpen = true;
+    }
 
     private void HistoryOverlay_OnMouseDown(object sender, MouseButtonEventArgs e)
     {

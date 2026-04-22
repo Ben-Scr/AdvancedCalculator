@@ -76,6 +76,7 @@ public sealed class MainViewModel : ObservableObject
         CloseHistoryCommand = new RelayCommand(_ => IsHistoryOpen = false, _ => IsHistoryOpen);
         SetNavigationPageCommand = new RelayCommand(page => SetNavigationPage(page as string));
         SetCalculatorModeCommand = new RelayCommand(mode => SelectedCalculatorMode = mode as string ?? StandardMode);
+        OpenToolCommand = new RelayCommand(tool => OpenTool(tool as string));
         OpenConverterCommand = new RelayCommand(converterKey => OpenConverter(converterKey as string));
         CloseConverterCommand = new RelayCommand(_ => ActiveConverterKey = null, _ => HasActiveConverter);
         DeleteHistoryEntryCommand = new RelayCommand(async item => await DeleteHistoryEntryAsync(item as CalculationHistoryItem));
@@ -86,9 +87,9 @@ public sealed class MainViewModel : ObservableObject
         SetThemeCommand = new RelayCommand(async theme => await SetThemeAsync(theme as string));
         SetLiveCalculationCommand = new RelayCommand(async value => await SetLiveCalculationAsync(value));
 
+        InitializeUnitConverters();
         BuildStandardKeys();
         BuildScientificKeys();
-        InitializeConverters();
     }
 
     public ObservableCollection<CalcKey> StandardKeys { get; } = [];
@@ -96,6 +97,18 @@ public sealed class MainViewModel : ObservableObject
     public ObservableCollection<CalcKey> ScientificKeys { get; } = [];
 
     public ObservableCollection<string> CalculatorModeOptions { get; } = [StandardMode, ScientificMode];
+
+    public UnitConverterViewModel NumberConverter { get; private set; } = null!;
+
+    public UnitConverterViewModel MemoryConverter { get; private set; } = null!;
+
+    public UnitConverterViewModel WeightConverter { get; private set; } = null!;
+
+    public UnitConverterViewModel VolumeConverter { get; private set; } = null!;
+
+    public UnitConverterViewModel EnergyConverter { get; private set; } = null!;
+
+    public UnitConverterViewModel LengthConverter { get; private set; } = null!;
 
     public ObservableCollection<ConverterFieldViewModel> NumberConverterFields { get; } = [];
 
@@ -124,6 +137,8 @@ public sealed class MainViewModel : ObservableObject
     public RelayCommand SetNavigationPageCommand { get; }
 
     public RelayCommand SetCalculatorModeCommand { get; }
+
+    public RelayCommand OpenToolCommand { get; }
 
     public RelayCommand OpenConverterCommand { get; }
 
@@ -231,6 +246,7 @@ public sealed class MainViewModel : ObservableObject
             OnPropertyChanged(nameof(IsConverterPage));
             OnPropertyChanged(nameof(IsSettingsPage));
             OnPropertyChanged(nameof(IsConverterSelectionVisible));
+            OnPropertyChanged(nameof(CurrentToolTitle));
         }
     }
 
@@ -239,6 +255,15 @@ public sealed class MainViewModel : ObservableObject
     public bool IsConverterPage => SelectedNavigationPage == ConverterPage;
 
     public bool IsSettingsPage => SelectedNavigationPage == SettingsPage;
+
+    public string CurrentToolTitle =>
+        SelectedNavigationPage switch
+        {
+            ConverterPage when HasActiveConverter => ActiveConverterTitle,
+            ConverterPage => "Converters",
+            SettingsPage => "Settings",
+            _ => CalculatorHeaderTitle
+        };
 
     public string SelectedCalculatorMode
     {
@@ -253,12 +278,19 @@ public sealed class MainViewModel : ObservableObject
 
             OnPropertyChanged(nameof(IsStandardMode));
             OnPropertyChanged(nameof(IsScientificMode));
+            OnPropertyChanged(nameof(CurrentToolTitle));
+            OnPropertyChanged(nameof(CalculatorHeaderTitle));
+            OnPropertyChanged(nameof(CalculatorModeLabel));
         }
     }
 
     public bool IsStandardMode => SelectedCalculatorMode == StandardMode;
 
     public bool IsScientificMode => SelectedCalculatorMode == ScientificMode;
+
+    public string CalculatorHeaderTitle => IsScientificMode ? "Scientific Calculator" : "Calculator";
+
+    public string CalculatorModeLabel => $"{SelectedCalculatorMode} mode";
 
     public string? ActiveConverterKey
     {
@@ -280,6 +312,8 @@ public sealed class MainViewModel : ObservableObject
             OnPropertyChanged(nameof(IsVolumeConverterActive));
             OnPropertyChanged(nameof(IsEnergyConverterActive));
             OnPropertyChanged(nameof(IsLengthConverterActive));
+            OnPropertyChanged(nameof(ActiveUnitConverter));
+            OnPropertyChanged(nameof(CurrentToolTitle));
             CloseConverterCommand.RaiseCanExecuteChanged();
         }
     }
@@ -299,6 +333,18 @@ public sealed class MainViewModel : ObservableObject
     public bool IsEnergyConverterActive => ActiveConverterKey == EnergyConverterKey;
 
     public bool IsLengthConverterActive => ActiveConverterKey == LengthConverterKey;
+
+    public UnitConverterViewModel? ActiveUnitConverter =>
+        ActiveConverterKey switch
+        {
+            NumberConverterKey => NumberConverter,
+            MemoryConverterKey => MemoryConverter,
+            WeightConverterKey => WeightConverter,
+            VolumeConverterKey => VolumeConverter,
+            EnergyConverterKey => EnergyConverter,
+            LengthConverterKey => LengthConverter,
+            _ => null
+        };
 
     public string ActiveConverterTitle =>
         ActiveConverterKey switch
@@ -397,6 +443,42 @@ public sealed class MainViewModel : ObservableObject
         {
             EvaluateLiveExpression();
         }
+    }
+
+    private void InitializeUnitConverters()
+    {
+        NumberConverter = new UnitConverterViewModel(
+            "Number Converter",
+            NumberConverterUnits,
+            "Decimal",
+            "Binary",
+            (input, sourceUnit, targetUnit) => _converterService.ConvertNumberSystem(input, sourceUnit, targetUnit));
+
+        MemoryConverter = CreateMeasurementConverter("Memory Converter", MemoryConverterUnits, MeasurementConverterKind.Memory, "MB", "GB");
+        WeightConverter = CreateMeasurementConverter("Weight Converter", WeightConverterUnits, MeasurementConverterKind.Weight, "kg", "lb");
+        VolumeConverter = CreateMeasurementConverter("Volume Converter", VolumeConverterUnits, MeasurementConverterKind.Volume, "l", "gal");
+        EnergyConverter = CreateMeasurementConverter("Power / Energy Converter", EnergyConverterUnits, MeasurementConverterKind.Energy, "Wh", "kWh");
+        LengthConverter = CreateMeasurementConverter("Length Converter", LengthConverterUnits, MeasurementConverterKind.Length, "m", "ft");
+    }
+
+    private UnitConverterViewModel CreateMeasurementConverter(
+        string title,
+        IReadOnlyList<string> units,
+        MeasurementConverterKind converterKind,
+        string defaultSourceUnit,
+        string defaultTargetUnit)
+    {
+        return new UnitConverterViewModel(
+            title,
+            units,
+            defaultSourceUnit,
+            defaultTargetUnit,
+            (input, sourceUnit, targetUnit) =>
+            {
+                var parsedValue = _converterService.ParseMeasurementInput(input, converterKind);
+                var convertedValue = _converterService.ConvertMeasurement(parsedValue, converterKind, sourceUnit, targetUnit);
+                return _converterService.FormatMeasurementValue(convertedValue);
+            });
     }
 
     private void InitializeConverters()
@@ -587,12 +669,7 @@ public sealed class MainViewModel : ObservableObject
 
         AddKey(StandardKeys, "0", new RelayCommand(_ => InsertNumberOrToken("0")));
         AddKey(StandardKeys, ".", new RelayCommand(_ => InsertDecimalPoint()));
-        AddKey(StandardKeys, "^", new RelayCommand(_ => InsertOperator("^")));
         AddKey(StandardKeys, "+", new RelayCommand(_ => InsertOperator("+")));
-
-        AddPlaceholder(StandardKeys);
-        AddPlaceholder(StandardKeys);
-        AddPlaceholder(StandardKeys);
         AddKey(StandardKeys, "=", EvaluateCommand, isAccent: true);
     }
 
@@ -707,6 +784,57 @@ public sealed class MainViewModel : ObservableObject
     {
         SelectedNavigationPage = page ?? CalculatorPage;
         ActiveConverterKey = null;
+        IsHistoryOpen = false;
+    }
+
+    private void OpenTool(string? tool)
+    {
+        switch (tool?.Trim().ToLowerInvariant())
+        {
+            case "calculator.standard":
+                SelectedCalculatorMode = StandardMode;
+                SelectedNavigationPage = CalculatorPage;
+                ActiveConverterKey = null;
+                break;
+            case "calculator.scientific":
+                SelectedCalculatorMode = ScientificMode;
+                SelectedNavigationPage = CalculatorPage;
+                ActiveConverterKey = null;
+                break;
+            case "converter.number":
+                SelectedNavigationPage = ConverterPage;
+                ActiveConverterKey = NumberConverterKey;
+                break;
+            case "converter.memory":
+                SelectedNavigationPage = ConverterPage;
+                ActiveConverterKey = MemoryConverterKey;
+                break;
+            case "converter.weight":
+                SelectedNavigationPage = ConverterPage;
+                ActiveConverterKey = WeightConverterKey;
+                break;
+            case "converter.volume":
+                SelectedNavigationPage = ConverterPage;
+                ActiveConverterKey = VolumeConverterKey;
+                break;
+            case "converter.energy":
+                SelectedNavigationPage = ConverterPage;
+                ActiveConverterKey = EnergyConverterKey;
+                break;
+            case "converter.length":
+                SelectedNavigationPage = ConverterPage;
+                ActiveConverterKey = LengthConverterKey;
+                break;
+            case "settings":
+                SelectedNavigationPage = SettingsPage;
+                ActiveConverterKey = null;
+                break;
+            default:
+                SelectedNavigationPage = CalculatorPage;
+                ActiveConverterKey = null;
+                break;
+        }
+
         IsHistoryOpen = false;
     }
 
